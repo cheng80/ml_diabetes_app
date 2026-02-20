@@ -6,6 +6,7 @@ import io
 import os
 
 import matplotlib
+from matplotlib import font_manager as fm
 
 # 혈당 의존도 조절: 0.5=동등, 0.6=혈당미포함 60%+혈당포함 40% (혈당 영향 감소)
 GLUCOSE_BLEND_WEIGHT = float(os.environ.get("GLUCOSE_BLEND_WEIGHT", "0.55"))
@@ -55,8 +56,39 @@ def _build_chart_input(feature_names: list[str], user: dict[str, float]) -> dict
 from app.schemas import PredictRequest, PredictResponse
 
 matplotlib.use("Agg")
-plt.rcParams["font.family"] = "AppleGothic"
 plt.rcParams["axes.unicode_minus"] = False
+
+
+def _configure_chart_font() -> bool:
+    """
+    차트 한글 폰트 설정.
+    - 서버에 한글 폰트가 있으면 한글 라벨 유지
+    - 없으면 영문 라벨로 폴백 (글자 깨짐 방지)
+    """
+    preferred = os.environ.get("CHART_FONT_FAMILY")
+    candidates = [preferred] if preferred else []
+    candidates += [
+        "AppleGothic",
+        "NanumGothic",
+        "Noto Sans CJK KR",
+        "Noto Sans KR",
+        "Malgun Gothic",
+    ]
+    installed = {f.name for f in fm.fontManager.ttflist}
+    for name in candidates:
+        if name and name in installed:
+            plt.rcParams["font.family"] = name
+            return True
+
+    plt.rcParams["font.family"] = "DejaVu Sans"
+    return False
+
+
+USE_KOREAN_CHART_TEXT = _configure_chart_font()
+
+
+def _txt(ko: str, en: str) -> str:
+    return ko if USE_KOREAN_CHART_TEXT else en
 
 
 # 정상 범위 기준 (당뇨 위험 관련)
@@ -80,18 +112,18 @@ def _input_vs_reference_chart(ax, input_values: dict[str, float]) -> None:
     if wc is not None and wc > 0:
         sex = input_values.get("sex", 1)
         ref_w = REF_WAIST_M if sex == 1 else REF_WAIST_F
-        metrics.append(("허리둘레 (cm)", f"{wc:.0f}", wc, 130, (ref_w, None)))
+        metrics.append((_txt("허리둘레 (cm)", "Waist (cm)"), f"{wc:.0f}", wc, 130, (ref_w, None)))
 
     glu = input_values.get("HE_glu") or input_values.get("glucose")
     if glu is not None and glu > 0:
-        metrics.append(("공복 혈당 (mg/dL)", f"{glu:.0f}", glu, 200, (REF_GLU_NORMAL, REF_GLU_DIABETES)))
+        metrics.append((_txt("공복 혈당 (mg/dL)", "Fasting glucose (mg/dL)"), f"{glu:.0f}", glu, 200, (REF_GLU_NORMAL, REF_GLU_DIABETES)))
 
     age = input_values.get("age")
     if age is not None and age > 0:
-        metrics.append(("나이", f"{age:.0f}세", age, 100, None))
+        metrics.append((_txt("나이", "Age"), f"{age:.0f}" + (_txt("세", "y")), age, 100, None))
 
     if not metrics:
-        ax.text(0.5, 0.5, "입력값 없음", ha="center", va="center", transform=ax.transAxes)
+        ax.text(0.5, 0.5, _txt("입력값 없음", "No input"), ha="center", va="center", transform=ax.transAxes)
         return
 
     labels = [m[0] for m in metrics]
@@ -129,8 +161,8 @@ def _input_vs_reference_chart(ax, input_values: dict[str, float]) -> None:
     ax.set_yticks(y_pos)
     ax.set_yticklabels(labels, fontsize=10)
     ax.set_xlim(0, x_axis_max * 1.05)
-    ax.set_xlabel("값")
-    ax.set_title("내 수치 vs 정상 범위 (녹색=정상, 노랑=주의, 빨강=위험)")
+    ax.set_xlabel(_txt("값", "Value"))
+    ax.set_title(_txt("내 수치 vs 정상 범위 (녹색=정상, 노랑=주의, 빨강=위험)", "My values vs reference ranges"))
     ax.grid(True, axis="x", alpha=0.3)
 
     for bar, m in zip(bars, metrics):
@@ -151,14 +183,14 @@ def create_chart_base64(
     ax1 = axes[0]
     diabetes_prob = max(0.0, min(1.0, probability))
     normal_prob = 1.0 - diabetes_prob
-    labels = ["정상 가능성", "당뇨 가능성"]
+    labels = [_txt("정상 가능성", "Normal"), _txt("당뇨 가능성", "Diabetes risk")]
     values = [normal_prob, diabetes_prob]
     colors = ["#4CAF50", "#E53935"]
 
     bars = ax1.bar(labels, values, color=colors)
     ax1.set_ylim(0, 1)
-    ax1.set_ylabel("확률")
-    ax1.set_title("당뇨 예측 결과 (ML 모델)")
+    ax1.set_ylabel(_txt("확률", "Probability"))
+    ax1.set_title(_txt("당뇨 예측 결과 (ML 모델)", "Diabetes prediction result"))
 
     for bar, value in zip(bars, values):
         ax1.text(
