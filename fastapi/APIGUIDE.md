@@ -1,38 +1,43 @@
 # 당뇨 예측 FastAPI 가이드 (API GUIDE)
 
-이 문서는 Flutter 앱(프론트엔드)과 통신하기 위해 구성된 FastAPI 백엔드 서버의 엔드포인트 및 스키마 명세서입니다.
+Flutter 앱과 연동되는 FastAPI 백엔드의 최신 엔드포인트/입출력 스펙입니다.
 
 ---
 
-## 🚀 서버 실행 방법
+## 서버 실행
 
-### 개발 모드 실행
 ```bash
 cd fastapi
 source .venv/bin/activate
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
-> **참고**: 실기기(Flutter)에서 테스트할 경우, `--host 0.0.0.0`으로 실행해야 동일 네트워크 내에서 IP를 통해 접근할 수 있습니다.
 
-### Swagger UI (API 문서 테스트)
-서버 실행 후 브라우저에서 아래 주소로 접속하면, 내장된 Swagger UI를 통해 직접 API를 테스트해 볼 수 있습니다.
-- **URL**: `http://localhost:8000/docs`
+- Swagger UI: `http://localhost:8000/docs`
+- 실기기 테스트 시 `--host 0.0.0.0` 권장
 
 ---
 
-## 📡 API 엔드포인트 명세
+## 엔드포인트 요약
 
-### 1. 상태 및 정보 확인 (Health Check)
-서버의 현재 상태 및 서빙 중인 머신러닝 모델의 기본 메타데이터를 반환합니다. 실기기 연결을 위해 서버의 Local IP 주소도 함께 안내합니다.
+| Method | URL | 설명 |
+|---|---|---|
+| GET | `/health` | 서버 상태 + 로컬 접속 URL |
+| POST | `/predict` | 당뇨 예측(확률/라벨/차트) |
+| POST | `/geocode` | 주소 -> 위도/경도 |
 
-- **URL**: `/health`
-- **Method**: `GET`
-- **응답 예시 (200 OK)**:
+---
+
+## 1) `GET /health`
+
+서버 상태와 실기기 연결용 IP를 반환합니다.
+
+### 응답 예시
+
 ```json
 {
   "status": "ok",
-  "model_sugar": "AdaBoostClassifier (혈당 포함, Acc 0.81)",
-  "model_no_sugar": "RandomForestClassifier (혈당 미포함, Acc 0.71)",
+  "model_sugar": "RandomForest (혈당 포함: 혈당, BMI, 나이, 임신횟수)",
+  "model_no_sugar": "RandomForest (혈당 미포함: BMI, 나이, 임신횟수)",
   "local_ip": "192.168.0.15",
   "suggested_url": "http://192.168.0.15:8000"
 }
@@ -40,59 +45,164 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ---
 
-### 2. 당뇨 예측 요청 (Predict)
-입력받은 사용자 데이터를 바탕으로 당뇨 위험도 확률 및 차트 이미지를 반환합니다.
-- 영문 키(`age`, `bmi`)와 한글 키(`나이`, `BMI`) **모두 사용 가능**합니다. (Pydantic의 `populate_by_name` 활용)
+## 2) `POST /predict`
 
-- **URL**: `/predict`
-- **Method**: `POST`
-- **요청 본문 (JSON)**: 최소 1개 이상의 데이터가 포함되어야 합니다.
+입력값으로 당뇨 위험도를 예측합니다.
+
+- 한글 키/영문 키 모두 사용 가능 (`populate_by_name=True`)
+- 최소 1개 이상 입력 필요
+- 허리둘레(`waist_cm`/`허리둘레`)가 들어오면 KNHANES 분기를 우선 사용
+
+### 요청 필드
+
+| 영문 키 | 한글 키 | 타입 | 필수 | 비고 |
+|---|---|---|---|---|
+| `pregnancies` | `임신횟수` | float | 선택 | Pima 분기용 |
+| `glucose` | `혈당` | float | 선택 | 혈당 포함 분기 |
+| `bmi` | `BMI` | float | 선택 | |
+| `age` | `나이` | float | 선택 | 범위 검증 있음 |
+| `waist_cm` | `허리둘레` | float | 선택 | 있으면 KNHANES 분기 |
+| `sex` | `성별` | int | 선택 | 1=남, 2=여 |
+| `height_cm` | `키` | float | 선택 | KNHANES 파생피처 계산용 |
+
+### 입력값 범위 검증
+
+| 키 | 허용 범위 |
+|---|---|
+| `glucose` | 44.0 ~ 199.0 |
+| `bmi` | 0.0 ~ 67.1 |
+| `age` | 19.0 ~ 100.0 |
+| `pregnancies` | 0.0 ~ 17.0 |
+| `waist_cm` | 50.0 ~ 150.0 |
+| `height_cm` | 80.0 ~ 220.0 |
+
+### 요청 예시 (KNHANES)
+
 ```json
 {
-  "나이": 45,
-  "BMI": 28.5,
-  "임신횟수": 2.0,
-  "혈당": 140.0
+  "성별": 1,
+  "나이": 47,
+  "키": 170,
+  "BMI": 28.0,
+  "허리둘레": 94.0,
+  "혈당": 95
 }
 ```
 
-- **응답 본문 (200 OK)**:
+### Flutter 요청 예시
+
+#### A. Simple(간편) 화면 스타일 예시
+
+혈당을 입력하지 않는 경우(허리둘레 기반 KNHANES 미포함 혈당 분기):
+
+```json
+{
+  "성별": 1,
+  "나이": 47,
+  "키": 170,
+  "BMI": 28.0,
+  "허리둘레": 94.0
+}
+```
+
+#### B. Detail(상세) 화면 스타일 예시
+
+혈당을 포함하는 경우(허리둘레 + 혈당 기반 KNHANES 블렌드 분기):
+
+```json
+{
+  "성별": 1,
+  "나이": 47,
+  "키": 170,
+  "BMI": 28.0,
+  "허리둘레": 94.0,
+  "혈당": 95.0
+}
+```
+
+#### C. Dart 코드 예시 (`http` 패키지)
+
+```dart
+final uri = Uri.parse('$baseUrl/predict');
+final body = {
+  '성별': 1,
+  '나이': 47,
+  '키': 170,
+  'BMI': 28.0,
+  '허리둘레': 94.0,
+  '혈당': 95.0, // 필요 없으면 제거
+};
+
+final response = await http.post(
+  uri,
+  headers: {'Content-Type': 'application/json'},
+  body: jsonEncode(body),
+);
+```
+
+### 응답 예시
+
 ```json
 {
   "prediction": 1,
-  "probability": 0.546,
+  "probability": 0.55,
   "label": "당뇨 위험",
   "input": {
-    "age": 50.0,
-    "bmi": 33.6,
-    "pregnancies": 6.0,
-    "glucose": 148.0
+    "glucose": 95.0,
+    "bmi": 28.0,
+    "age": 47.0,
+    "waist_cm": 94.0,
+    "sex": 1.0,
+    "height_cm": 170.0
   },
-  "used_model": "AdaBoost (혈당 포함)",
-  "chart_image_base64": "iVBORw0KGgoAAAANSUhEUgAA..." 
+  "used_model": "KNHANES 블렌드 (위험인자 55% + 혈당 45%)",
+  "chart_image_base64": "iVBORw0KGgoAAAANSUhEUgAA..."
 }
 ```
-> `chart_image_base64`: Flutter 측에서 `Image.memory(base64Decode(chart_image_base64))` 형태로 즉시 렌더링 가능한 모델 차트 이미지(PNG) 데이터입니다.
 
-- **에러 응답**:
-  - `400 Bad Request`: 입력값이 전혀 없거나, 값이 허용 범위를 초과한 경우.
+### 응답 필드
+
+| 필드 | 타입 | 설명 |
+|---|---|---|
+| `prediction` | int | 0=정상 범위, 1=당뇨 위험 |
+| `probability` | float | 당뇨(1) 클래스 확률 |
+| `label` | string | 사람이 읽는 라벨 |
+| `input` | object | 서버가 실제 사용한 입력값 |
+| `used_model` | string | 실제 사용 모델/분기명 |
+| `chart_image_base64` | string \| null | PNG base64 이미지 |
+
+### 모델 분기 규칙
+
+| 조건 | 사용 모델 |
+|---|---|
+| `waist_cm` 있고 `glucose` 있음 | KNHANES 혈당 포함 + 혈당미포함 블렌드 |
+| `waist_cm` 있고 `glucose` 없음 | KNHANES 혈당 미포함 |
+| `waist_cm` 없음, `glucose` 있음 | Pima 혈당 포함 |
+| `waist_cm` 없음, `glucose` 없음 | Pima 혈당 미포함 |
+
+### 주요 에러
+
+| 코드 | 상황 |
+|---|---|
+| 400 | 입력이 비어 있음 / 범위 벗어남 |
+| 503 | 필요한 모델 파일이 없음 |
 
 ---
 
-### 3. 주소 좌표 변환 (Geocoding)
-한글 주소 텍스트를 받아 위도(latitude)와 경도(longitude)로 변환해 줍니다. 
-- 내부적으로 `geopy`의 Nominatim 오픈 API를 사용하며, 별도의 가입이나 키 발급이 불필요합니다.
+## 3) `POST /geocode`
 
-- **URL**: `/geocode`
-- **Method**: `POST`
-- **요청 본문 (JSON)**:
+주소 문자열을 위도/경도로 변환합니다. (`geopy` Nominatim 사용)
+
+### 요청 예시
+
 ```json
 {
   "address": "서울특별시 송파구 중대로 191"
 }
 ```
 
-- **응답 본문 (200 OK)**:
+### 응답 예시
+
 ```json
 {
   "lat": "37.4990789571513",
@@ -100,23 +210,29 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 }
 ```
 
-- **에러 응답**:
-  - `404 Not Found`: 해당 주소에 대한 좌표를 찾지 못했거나 타임아웃이 발생한 경우.
+### 에러
+
+| 코드 | 상황 |
+|---|---|
+| 404 | 주소를 찾지 못함/지오코딩 실패 |
 
 ---
 
-## 📁 프로젝트 내부 구조
+## 프로젝트 파일 요약
 
 ```text
 fastapi/
-├── APIGUIDE.md            # API 명세 및 가이드 (현재 문서)
-├── requirements.txt       # 파이썬 패키지 의존성
+├── APIGUIDE.md (API 명세 문서)
+├── requirements.txt (Python 의존성 목록)
+├── train_knhanes.py (KNHANES 모델 학습/검증/저장 스크립트)
 └── app/
-    ├── main.py            # FastAPI 앱 초기화 및 엔드포인트 매핑
-    ├── schemas.py         # Pydantic을 활용한 입출력 데이터 타입 정의
-    ├── predictor.py       # 머신러닝 예측 로직 + Matplotlib 차트 생성 기능
-    ├── geocoding.py       # Nominatim 주소 검색 로직
-    ├── model_loader.py    # joblib 모델 로드 + StandardScaler 전처리 함수
-    ├── model_sugar.joblib # 혈당 포함 모델 (AdaBoost, Acc 0.81)
-    └── model_no_sugar.joblib # 혈당 제외 모델 (RandomForest, Acc 0.71)
+    ├── main.py (FastAPI 앱 시작점, 라우팅)
+    ├── schemas.py (요청/응답 Pydantic 스키마)
+    ├── predictor.py (예측 분기, 확률 계산, 차트 생성)
+    ├── geocoding.py (주소 -> 위도/경도 변환)
+    ├── model_loader.py (모델/전처리 객체 로드)
+    ├── model_knhanes_glu.joblib (KNHANES 혈당 포함 모델 번들)
+    ├── model_knhanes_no_glu.joblib (KNHANES 혈당 미포함 모델 번들)
+    ├── model_sugar.joblib (Pima 혈당 포함 모델)
+    └── model_no_sugar.joblib (Pima 혈당 미포함 모델)
 ```

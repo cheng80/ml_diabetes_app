@@ -1,3 +1,4 @@
+import 'package:diabetes_app/constants/predict_styles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -241,14 +242,19 @@ class _BmiTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: EdgeInsets.symmetric(
         vertical: compact ? 6 : 12,
         horizontal: compact ? 4 : 8,
       ),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: scheme.primaryContainer,
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: scheme.primary.withValues(alpha: 0.5),
+          width: 1.5,
+        ),
       ),
       alignment: Alignment.centerLeft,
       child: Column(
@@ -258,13 +264,18 @@ class _BmiTile extends StatelessWidget {
         children: [
           Text(
             'BMI',
-            style: Theme.of(context).textTheme.labelSmall,
+            style: PredictStyles.cardLabel(context).copyWith(
+              color: scheme.onPrimaryContainer.withValues(alpha: 0.8),
+            ),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),
           Text(
             bmi.toStringAsFixed(1),
-            style: Theme.of(context).textTheme.titleMedium,
+            style: PredictStyles.cardValue(context).copyWith(
+              color: scheme.onPrimaryContainer,
+              fontWeight: FontWeight.bold,
+            ),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),
@@ -306,7 +317,7 @@ class _PickerTile extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: Theme.of(context).textTheme.labelSmall,
+                style: PredictStyles.cardLabel(context),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
@@ -317,7 +328,7 @@ class _PickerTile extends StatelessWidget {
                   Expanded(
                     child: Text(
                       value,
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: PredictStyles.cardValue(context),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),

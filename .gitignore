@@ -166,6 +166,7 @@ analysis_benchmark.json
 **/*.db
 **/*.dump
 **/*.sql~
+fastapi/resources/data/
 
 ############################################################
 # Symbols / Debug

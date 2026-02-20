@@ -1,6 +1,11 @@
 fastapi
-uvicorn
-scikit-learn
-pandas
-numpy
 geopy
+imbalanced-learn
+joblib
+matplotlib
+numpy
+pandas
+pydantic
+pyreadstat
+scikit-learn
+uvicorn

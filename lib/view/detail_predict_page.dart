@@ -6,11 +6,14 @@ import 'package:diabetes_app/view/address_search_page.dart';
 import 'package:diabetes_app/view/hospital_search_page.dart';
 import 'package:diabetes_app/widgets/age_picker.dart';
 import 'package:diabetes_app/widgets/height_weight_picker.dart';
+import 'package:diabetes_app/widgets/sex_picker.dart';
+import 'package:diabetes_app/constants/predict_styles.dart';
+import 'package:diabetes_app/widgets/waist_circumference_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
-// 텍스트박스로 직접 입력하는 상세 예측 (임신 0~14, 혈당 44~199)
+// 피커·텍스트박스로 입력하는 상세 예측 (허리둘레 피커, 혈당 직접입력)
 class DetailPredictPage extends StatefulWidget {
   const DetailPredictPage({super.key});
 
@@ -20,28 +23,20 @@ class DetailPredictPage extends StatefulWidget {
 
 class _DetailPredictPageState extends State<DetailPredictPage> {
   double _bmi = 0;
+  int _heightCm = 170;
   int _age = 30;
+  int _sex = 1;
+  double _waistCm = 85;
 
-  static const int _pregMin = 0;
-  static const int _pregMax = 14;
   static const int _sugarMin = 44;
   static const int _sugarMax = 199;
 
-  final _pregCtrl = TextEditingController();
   final _sugarCtrl = TextEditingController();
 
   @override
   void dispose() {
-    _pregCtrl.dispose();
     _sugarCtrl.dispose();
     super.dispose();
-  }
-
-  bool _isPregOut() {
-    final text = _pregCtrl.text.trim();
-    if (text.isEmpty) return false; // 공백=0
-    final v = int.tryParse(text);
-    return v == null || v < _pregMin || v > _pregMax;
   }
 
   bool _isSugarOut() {
@@ -51,16 +46,8 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
     return v == null || v < _sugarMin || v > _sugarMax;
   }
 
-  // 공백이면 0 (API 전송용)
-  // ignore: unused_element
-  int get _pregVal {
-    final text = _pregCtrl.text.trim();
-    if (text.isEmpty) return 0;
-    return int.tryParse(text) ?? 0;
-  }
-
   bool get _ok =>
-      _bmi > 0 && !_isPregOut() && !_isSugarOut();
+      _bmi > 0 && _waistCm > 0 && !_isSugarOut();
 
   Future<void> _onPredict() async {
     CustomCommonUtil.showLoadingOverlay(context, message: '당뇨 위험도를 분석 중입니다...');
@@ -71,7 +58,9 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
       final body = {
         '나이': _age,
         'BMI': _bmi,
-        '임신횟수': _pregVal,
+        '키': _heightCm,
+        '성별': _sex,
+        '허리둘레': _waistCm,
       };
 
       if (_sugarCtrl.text.trim().isNotEmpty) {
@@ -241,7 +230,24 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 12,
                 children: [
-                  const Text('나이'),
+                  Text(
+                    '성별',
+                    style: PredictStyles.sectionLabel(context),
+                  ),
+                  SexPicker(
+                    sex: _sex,
+                    onChanged: (s) => setState(() => _sex = s),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 12,
+                children: [
+                  Text(
+                    '나이',
+                    style: PredictStyles.sectionLabel(context),
+                  ),
                   AgePicker(
                     initialAge: _age,
                     onChanged: (age) => setState(() => _age = age),
@@ -252,49 +258,32 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 12,
                 children: [
-                  const Text('키·몸무게 (BMI 산출)'),
+                  Text(
+                    '키·몸무게 (BMI 산출)',
+                    style: PredictStyles.sectionLabel(context),
+                  ),
                   HeightWeightPicker(
                     onChanged: (height, weight, bmi) {
-                      setState(() => _bmi = bmi);
+                      setState(() {
+                        _bmi = bmi;
+                        _heightCm = height;
+                      });
                     },
                   ),
                 ],
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 12,
-                children: [
-                  const Text('임신횟수 (회)'),
-                  TextFormField(
-                    controller: _pregCtrl,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
-                    decoration: InputDecoration(
-                      hintText: '최소 $_pregMin, 최대 $_pregMax (미입력 시 0)',
-                      hintStyle: Theme.of(context).textTheme.bodySmall,
-                      errorText: _pregCtrl.text.trim().isNotEmpty && _isPregOut()
-                          ? '범위를 벗어났습니다 ($_pregMin~$_pregMax)'
-                          : null,
-                      errorBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.red.shade400),
-                      ),
-                      focusedErrorBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.red.shade400),
-                      ),
-                      filled: true,
-                      fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    ),
-                    onChanged: (_) => setState(() {}),
-                  ),
-                ],
+              WaistCircumferencePicker(
+                initialCm: _waistCm.round(),
+                onChanged: (cm) => setState(() => _waistCm = cm),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 8,
                 children: [
-                  const Text('혈당 (mg/dL)'),
+                  Text(
+                    '혈당 (mg/dL)',
+                    style: PredictStyles.sectionLabel(context),
+                  ),
                   TextFormField(
                     controller: _sugarCtrl,
                     keyboardType: TextInputType.number,
@@ -328,7 +317,10 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
               ),
               FilledButton(
                 onPressed: _ok ? _onPredict : null,
-                child: const Text('예측하기'),
+                child: const Text(
+                  '예측하기',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),

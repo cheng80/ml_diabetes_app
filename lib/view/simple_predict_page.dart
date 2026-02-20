@@ -7,10 +7,13 @@ import 'package:diabetes_app/view/hospital_search_page.dart';
 import 'package:diabetes_app/widgets/age_picker.dart';
 import 'package:diabetes_app/widgets/height_weight_picker.dart';
 import 'package:diabetes_app/widgets/percentile_range_radio.dart';
+import 'package:diabetes_app/widgets/sex_picker.dart';
+import 'package:diabetes_app/constants/predict_styles.dart';
+import 'package:diabetes_app/widgets/waist_circumference_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-// 라디오로 혈당·임신횟수 선택하는 심플 예측
+// 라디오로 혈당 선택, 허리둘레 피커로 선택하는 심플 예측
 class SimplePredictPage extends StatefulWidget {
   const SimplePredictPage({super.key});
 
@@ -20,11 +23,13 @@ class SimplePredictPage extends StatefulWidget {
 
 class _SimplePredictPageState extends State<SimplePredictPage> {
   double _bmi = 0;
+  int _heightCm = 170;
   int _age = 30;
+  int _sex = 1;
+  double _waistCm = 85;
   int? _sugarIndex;
-  int? _pregIndex;
 
-  bool get _ok => _bmi > 0 && _pregIndex != null;
+  bool get _ok => _bmi > 0 && _waistCm > 0;
 
   Future<void> _onPredict() async {
     CustomCommonUtil.showLoadingOverlay(context, message: '당뇨 위험도를 분석 중입니다...');
@@ -32,13 +37,14 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
     try {
       final url = '${CustomCommonUtil.getApiBaseUrlSync()}/predict';
       
-      final pregRange = PercentileRangeRadio.pregnancyRanges[_pregIndex!];
       final sugarRange = _sugarIndex != null ? PercentileRangeRadio.bloodGlucoseRanges[_sugarIndex!] : null;
 
       final body = {
         '나이': _age,
         'BMI': _bmi,
-        '임신횟수': (pregRange.$1 + pregRange.$2) / 2.0,
+        '키': _heightCm,
+        '성별': _sex,
+        '허리둘레': _waistCm,
         if (sugarRange != null) '혈당': (sugarRange.$1 + sugarRange.$2) / 2.0,
       };
 
@@ -205,7 +211,24 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 12,
                 children: [
-                  const Text('나이'),
+                  Text(
+                    '성별',
+                    style: PredictStyles.sectionLabel(context),
+                  ),
+                  SexPicker(
+                    sex: _sex,
+                    onChanged: (s) => setState(() => _sex = s),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 12,
+                children: [
+                  Text(
+                    '나이',
+                    style: PredictStyles.sectionLabel(context),
+                  ),
                   AgePicker(
                     initialAge: _age,
                     onChanged: (age) => setState(() => _age = age),
@@ -216,19 +239,23 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 12,
                 children: [
-                  const Text('키·몸무게 (BMI 산출)'),
+                  Text(
+                    '키·몸무게 (BMI 산출)',
+                    style: PredictStyles.sectionLabel(context),
+                  ),
                   HeightWeightPicker(
                     onChanged: (height, weight, bmi) {
-                      setState(() => _bmi = bmi);
+                      setState(() {
+                        _bmi = bmi;
+                        _heightCm = height;
+                      });
                     },
                   ),
                 ],
               ),
-              PercentileRangeRadio(
-                label: '임신횟수 (회)',
-                ranges: PercentileRangeRadio.pregnancyRanges,
-                selectedIndex: _pregIndex,
-                onChanged: (index) => setState(() => _pregIndex = index),
+              WaistCircumferencePicker(
+                initialCm: _waistCm.round(),
+                onChanged: (cm) => setState(() => _waistCm = cm),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -250,7 +277,10 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
               ),
               FilledButton(
                 onPressed: _ok ? _onPredict : null,
-                child: const Text('예측하기'),
+                child: const Text(
+                  '예측하기',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),

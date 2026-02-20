@@ -1,7 +1,8 @@
+import 'package:diabetes_app/constants/predict_styles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-// 나이 1~120, 백십일 3휠 (스크롤 최소화)
+// 나이 19~120 (KNHANES 만19세 이상), 백십일 3휠
 class AgePicker extends StatefulWidget {
   const AgePicker({
     super.key,
@@ -17,7 +18,7 @@ class AgePicker extends StatefulWidget {
 }
 
 class _AgePickerState extends State<AgePicker> {
-  static const int _minAge = 1;
+  static const int _minAge = 19;
   static const int _maxAge = 120;
 
   late int _age;
@@ -170,7 +171,7 @@ class _AgePickerState extends State<AgePicker> {
               Expanded(
                 child: Text(
                   '$_age세',
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: PredictStyles.cardValue(context),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),

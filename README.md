@@ -13,6 +13,7 @@ Flutter + FastAPI 기반의 당뇨 위험도 예측 모바일 앱입니다.
 - **상세 예측**: 각 항목을 직접 수치로 입력
 - 혈당 수치는 선택 사항이며, 입력 여부에 따라 서로 다른 모델이 적용됨
 - 예측 결과를 확률, 판정, 차트 이미지로 제공
+- 차트: 예측 확률 + **내 수치 vs 정상 범위** (BMI·허리둘레·혈당 기준선 표시)
 
 ### 병원 검색 및 길찾기
 - 주소 검색 후 좌표 기반으로 주변 병원 목록 조회 (공공데이터 API)
@@ -84,6 +85,9 @@ diabetes_app/
 │   │   ├── model_sugar.joblib             # 혈당 포함 모델 (AdaBoost)
 │   │   └── model_no_sugar.joblib          # 혈당 미포함 모델 (RandomForest)
 │   ├── requirements.txt
+│   ├── resources/
+│   │   ├── data/                         # KNHANES 원본 데이터(.sav) 및 이용지침서
+│   │   └── submission/                   # 보고서/차트 산출물
 │   ├── APIGUIDE.md                        # API 명세 문서
 │   └── MODEL_FIX_REPORT.md               # 모델 수정 보고서
 │
@@ -132,15 +136,75 @@ flutter run
 
 ## ML 모델
 
-Pima Indians Diabetes Dataset(당뇨.csv)을 기반으로 학습한 두 가지 모델을 사용합니다.
+- **KNHANES(기본 경로)**: 국민건강영양조사 2019 기반 모델
+  - 혈당 포함/미포함 모델을 모두 사용
+  - 혈당 포함 요청 시 KNHANES 혈당 포함 + 미포함 결과를 블렌딩
+- **Pima(호환 경로)**: 허리둘레 미입력 등 레거시 입력 케이스 대응용
 
-| 시나리오 | 모델 | 입력 피처 | Test Accuracy |
-|----------|------|-----------|---------------|
-| 혈당 포함 | AdaBoost | 혈당, BMI, 나이, 임신횟수 | 0.81 |
-| 혈당 미포함 | RandomForest | BMI, 나이, 임신횟수 | 0.71 |
+### 혈당 의존도 조절
 
-API에서 사용자 입력(원본 수치)을 받으면 학습 시와 동일한 StandardScaler 표준화를 적용한 뒤 모델에 전달합니다.  
-모델 수정 이력과 전처리 파이프라인 상세는 [MODEL_FIX_REPORT.md](fastapi/MODEL_FIX_REPORT.md)를 참고하세요.
+혈당만으로 과도하게 판단되는 것을 줄이기 위해 **블렌딩**을 적용합니다.
+
+- 혈당 입력 시: `(혈당 미포함 모델 × 55%) + (혈당 포함 모델 × 45%)`로 확률 혼합
+- 환경변수 `GLUCOSE_BLEND_WEIGHT=0.6`으로 비율 조정 가능 (0.6 = 혈당미포함 60%)
+- 재학습 시 `--glucose-scale 0.7`로 혈당 피처 영향도 감소 가능
+
+API에서 사용자 입력(원본 수치)을 받으면 학습 시와 동일한 전처리를 적용한 뒤 모델에 전달합니다.  
+모델 선택 근거와 전처리 파이프라인 상세는 [diabetes_model_report.md](fastapi/resources/submission/diabetes_model_report.md)를 참고하세요.
+
+### KNHANES 원본 데이터 위치 (재학습)
+
+- 기본 경로: `fastapi/resources/data/HN19_ALL.sav`
+- 안내 문서: `fastapi/resources/README.md`
+- 제출 문서/차트: `fastapi/resources/submission/`
+
+### KNHANES 재학습 가이드
+
+#### 1) 데이터 파일 배치
+
+아래 파일을 `fastapi/resources/data/`에 복사합니다.
+
+- `HN19_ALL.sav`
+- `국민건강영양조사+제8기(2019-2021)+원시자료+이용지침서.pdf` (선택, 참고용)
+
+#### 2) Python 환경 준비
+
+```bash
+cd fastapi
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+#### 3) 모델 재학습 (혈당 포함/미포함)
+
+```bash
+cd fastapi
+source .venv/bin/activate
+
+# 혈당 포함 모델
+python train_knhanes.py \
+  --with-glucose \
+  --feature-eng --poly --smote \
+  --score-by balanced_recall \
+  --save
+
+# 혈당 미포함 모델
+python train_knhanes.py \
+  --feature-eng --poly --smote \
+  --score-by balanced_recall \
+  --save
+```
+
+#### 4) 생성 결과 확인
+
+- 모델 파일: `fastapi/app/model_knhanes_glu.joblib`, `fastapi/app/model_knhanes_no_glu.joblib`
+- 결과 JSON: `fastapi/app/knhanes_result_glu.json`, `fastapi/app/knhanes_result_no_glu.json`
+
+### ML 결과 리포트
+
+- 최종 리포트: [diabetes_model_report.md](fastapi/resources/submission/diabetes_model_report.md)
+- 리포트 이미지: `fastapi/resources/submission/assets/`
 
 ---
 

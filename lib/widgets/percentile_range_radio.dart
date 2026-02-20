@@ -1,4 +1,5 @@
 import 'package:diabetes_app/constants/diabetes_predict_mapping.dart';
+import 'package:diabetes_app/constants/predict_styles.dart';
 import 'package:flutter/material.dart';
 
 // 분위 구간 라디오 (인덱스 0~3 반환, BloodGlucoseMapping/PregnancyMapping 참고)
@@ -7,12 +8,14 @@ class PercentileRangeRadio extends StatelessWidget {
     super.key,
     required this.label,
     required this.ranges,
+    this.labelStyle,
     this.selectedIndex,
     this.onChanged,
   });
 
   final String label;
   final List<(int, int)> ranges;
+  final TextStyle? labelStyle;
   final int? selectedIndex;
   final void Function(int index)? onChanged;
 
@@ -73,7 +76,7 @@ class PercentileRangeRadio extends StatelessWidget {
         children: [
           Text(
             label,
-            style: Theme.of(context).textTheme.labelSmall,
+            style: labelStyle ?? PredictStyles.sectionLabel(context),
           ),
           Table(
             columnWidths: const {

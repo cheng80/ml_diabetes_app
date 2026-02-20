@@ -10,6 +10,9 @@ class PredictRequest(BaseModel):
     glucose: float | None = Field(None, alias="혈당")
     bmi: float | None = Field(None, alias="BMI")
     age: float | None = Field(None, alias="나이")
+    waist_cm: float | None = Field(None, alias="허리둘레")
+    sex: int | None = Field(None, alias="성별")  # 1=남, 2=여 (KNHANES)
+    height_cm: float | None = Field(None, alias="키")  # HE_whr 계산용
 
     model_config = ConfigDict(populate_by_name=True)
 
