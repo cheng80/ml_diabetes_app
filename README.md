@@ -14,6 +14,9 @@ Flutter + FastAPI 기반의 당뇨 위험도 예측 모바일 앱입니다.
 - **간편 예측**: 나이, 키/몸무게(BMI), 임신횟수, 공복 혈당을 라디오 버튼 구간으로 선택
 - **상세 예측**: 각 항목을 직접 수치로 입력
 - 공복 혈당은 선택 사항이며, 입력 여부에 따라 서로 다른 모델이 적용됨
+- 상세 예측의 보강 질문(F1 가족력, F2 고혈압/혈압약)은 선택 입력
+  - 서버 안전장치 정책: `F2`는 KNHANES 경로에서 우선 반영, `F1`은 혈당 미입력 경로에서만 반영
+  - Pima 경로에서는 `F1/F2` 입력이 자동 제외됨
 - 예측 결과를 확률, 판정, 차트 이미지로 제공
 - 차트: 예측 확률 + **내 수치 vs 정상 범위** (BMI·허리둘레·공복 혈당 기준선 표시)
 
@@ -96,6 +99,7 @@ diabetes_app/
 │   ├── requirements.txt
 │   ├── resources/
 │   │   ├── data/                         # KNHANES 원본 데이터(.sav) 및 이용지침서
+│   │   ├── simulation/                   # 운영/확장 시나리오 검증 결과(CSV/MD/PNG)
 │   │   └── submission/                   # 보고서/차트 산출물
 │   ├── APIGUIDE.md                        # API 명세 문서
 │
@@ -162,6 +166,14 @@ flutter run
 API에서 사용자 입력(원본 수치)을 받으면 학습 시와 동일한 전처리를 적용한 뒤 모델에 전달합니다.  
 모델 선택 근거와 전처리 파이프라인 상세는 [diabetes_model_report.md](fastapi/resources/submission/diabetes_model_report.md)를 참고하세요.
 
+### 선택형 보강 입력(F1/F2) 정책 요약
+
+- 입력 필드: `family_history_dm(가족력)`, `htn_or_med(고혈압/혈압약)`
+- KNHANES + 혈당 입력: `F2` 반영, `F1` 제외
+- KNHANES + 혈당 미입력: `F1`, `F2` 조건부 반영
+- Pima 경로: `F1/F2` 자동 제외
+- 참고: 응답 `input`은 서버가 최종 사용한 입력값
+
 ### KNHANES 원본 데이터 위치 (재학습)
 
 - 기본 경로: `fastapi/resources/data/HN19_ALL.sav`
@@ -210,6 +222,19 @@ python train_knhanes.py \
 
 - 모델 파일: `fastapi/app/model_knhanes_glu.joblib`, `fastapi/app/model_knhanes_no_glu.joblib`
 - 결과 JSON: `fastapi/app/knhanes_result_glu.json`, `fastapi/app/knhanes_result_no_glu.json`
+
+#### 5) 시뮬레이션 재현 (운영/확장 검증)
+
+```bash
+cd fastapi
+source .venv/bin/activate
+
+# 운영 시나리오 (glu_exact / glu_binned / no_glu / blend)
+python simulate_optional_input_cases.py
+
+# 확장 시나리오 (F1/F2 분리: none / f1 / f2 / f12)
+python simulate_feature_plan_cases.py
+```
 
 ### ML 결과 리포트
 
