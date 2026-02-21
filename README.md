@@ -43,7 +43,7 @@ Flutter + FastAPI 기반의 당뇨 위험도 예측 모바일 앱입니다.
 | 백엔드 | FastAPI (Python) |
 | ML 모델 | scikit-learn (AdaBoost, RandomForest) |
 | 데이터 시각화 | Matplotlib (서버 사이드 차트 생성, Base64 전송) |
-| 주소 검색 | 카카오 주소검색 API (remedi_kopo) |
+| 주소 검색 | 카카오 주소검색 API (kpostal, API키 없음) |
 | 병원 조회 | 공공데이터 건강보험심사평가원 API |
 | 좌표 변환 | Nominatim (geopy) |
 | 지도 연동 | map_launcher |
@@ -54,7 +54,7 @@ Flutter + FastAPI 기반의 당뇨 위험도 예측 모바일 앱입니다.
 ## 프로젝트 구조
 
 ```
-diabetes_app/
+ml_diabetes_app/
 ├── lib/
 │   ├── main.dart                          # 앱 진입점
 │   ├── config.dart                        # API 키 및 기본 URL 설정
@@ -103,6 +103,10 @@ diabetes_app/
 │   │   └── submission/                   # 보고서/차트 산출물
 │   ├── APIGUIDE.md                        # API 명세 문서
 │
+├── scripts/
+│   ├── KPOSTAL_MIGRATION.md               # kpostal 적용 가이드 (다른 프로젝트용)
+│   ├── patch_webview_for_android.sh       # webview_flutter_android AGP8 패치 (remedi_kopo 사용 시)
+│   └── README.md                          # scripts 문서
 ├── android/                               # Android 플랫폼
 ├── ios/                                   # iOS 플랫폼
 └── pubspec.yaml                           # Flutter 의존성
