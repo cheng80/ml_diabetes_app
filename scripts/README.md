@@ -1,3 +1,12 @@
+# scripts/
+
+## 문서 목록
+
+- **[KPOSTAL_MIGRATION.md](KPOSTAL_MIGRATION.md)** — kpostal 패키지 적용 가이드 (remedi_kopo → kpostal 교체, 다른 프로젝트 적용용)
+- **patch_webview_for_android.sh** — webview_flutter_android AGP8 호환 패치 (remedi_kopo 사용 시)
+
+---
+
 # webview_flutter_android 패치 (Android AGP8 호환)
 
 ## 개요

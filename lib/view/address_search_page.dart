@@ -3,11 +3,10 @@ import 'dart:convert';
 import 'package:diabetes_app/constants/config_ui.dart';
 import 'package:diabetes_app/utils/app_storage.dart';
 import 'package:diabetes_app/utils/custom_common_util.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:remedi_kopo/remedi_kopo.dart';
+import 'package:kpostal/kpostal.dart';
 
 /// 주소 찾기 화면
 ///
@@ -43,18 +42,18 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
 
   Future<void> _searchAddress() async {
     try {
-      final KopoModel? model = await Navigator.push(
+      final Kpostal? result = await Navigator.push<Kpostal>(
         context,
-        CupertinoPageRoute(
-          builder: (context) => RemediKopo(),
+        MaterialPageRoute(
+          builder: (context) => KpostalView(),
         ),
       );
 
-      if (model != null && mounted) {
+      if (result != null && mounted) {
         setState(() {
-          _postcodeController.text = model.zonecode ?? '';
-          _addressController.text = model.address ?? '';
-          _addressDetailController.text = model.buildingName ?? '';
+          _postcodeController.text = result.postCode;
+          _addressController.text = result.userSelectedAddress;
+          _addressDetailController.text = result.buildingName;
         });
       }
     } on PlatformException catch (e) {
