@@ -94,6 +94,59 @@ if (result != null && mounted) {
 - `latitude` / `longitude` : 플랫폼 geocoding 좌표 (비동기 `latLng` getter로 설정됨)
 - `kakaoLatitude` / `kakaoLongitude` : 카카오 API 좌표 (`kakaoKey` 설정 시)
 
+### 좌표 변환 / 저장 버튼이 분리된 경우
+
+좌표 변환 버튼과 저장 버튼이 따로 있는 UI라면:
+
+- **좌표 변환 버튼**: kpostal 결과의 `latitude`, `longitude`가 있으면 그대로 사용. 없을 때만 `/geocode` 호출.
+- **저장 버튼**: 이미 변환된 좌표를 저장.
+
+```dart
+double? _lastSearchLat;
+double? _lastSearchLng;
+
+// 검색 결과에서 좌표 보관
+if (result != null) {
+  _lastSearchLat = result.latitude;
+  _lastSearchLng = result.longitude;
+}
+
+// 좌표 변환 버튼
+void _onConvertCoordinates() {
+  if (_lastSearchLat != null && _lastSearchLng != null) {
+    // kpostal 좌표 사용 → UI에 표시
+    setState(() { /* lat, lng 표시 */ });
+  } else {
+    // 서버 /geocode 호출
+  }
+}
+
+// 저장 버튼: 이미 변환된 좌표로 저장
+```
+
+### 좌표 변환·저장이 한 버튼인 경우
+
+kpostal은 주소 선택 시 플랫폼 geocoding으로 `latitude`, `longitude`를 이미 제공합니다.  
+저장 시 이 좌표를 쓰면 FastAPI `/geocode` 호출을 생략할 수 있어, Nominatim 503 오류를 피할 수 있습니다.
+
+```dart
+// 검색 결과에서 좌표 저장
+double? _lastSearchLat;
+double? _lastSearchLng;
+
+if (result != null) {
+  _lastSearchLat = result.latitude;
+  _lastSearchLng = result.longitude;
+}
+
+// 저장 시: 좌표가 있으면 서버 호출 생략
+if (_lastSearchLat != null && _lastSearchLng != null) {
+  // 바로 저장
+} else {
+  // 서버 /geocode 호출
+}
+```
+
 ---
 
 ## 3. 빌드 및 확인

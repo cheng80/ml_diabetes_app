@@ -30,6 +30,10 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
 
   bool _saveLoading = false;
 
+  /// kpostal 검색 결과의 좌표 (플랫폼 geocoding). 있으면 서버 /geocode 호출 생략
+  double? _lastSearchLat;
+  double? _lastSearchLng;
+
   bool get _canSave => _buildBaseAddress().isNotEmpty;
 
   @override
@@ -54,6 +58,8 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
           _postcodeController.text = result.postCode;
           _addressController.text = result.userSelectedAddress;
           _addressDetailController.text = result.buildingName;
+          _lastSearchLat = result.latitude;
+          _lastSearchLng = result.longitude;
         });
       }
     } on PlatformException catch (e) {
@@ -104,43 +110,55 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
     CustomCommonUtil.showLoadingOverlay(context, message: '저장 중...');
 
     try {
-      final baseUrl = CustomCommonUtil.getApiBaseUrlSync();
-      final response = await http.post(
-        Uri.parse('$baseUrl/geocode'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'address': baseAddress}),
-      );
+      String? lat;
+      String? lng;
+
+      // kpostal 검색 시 플랫폼 geocoding으로 받은 좌표가 있으면 서버 호출 생략
+      if (_lastSearchLat != null && _lastSearchLng != null) {
+        lat = _lastSearchLat!.toString();
+        lng = _lastSearchLng!.toString();
+      } else {
+        final baseUrl = CustomCommonUtil.getApiBaseUrlSync();
+        final response = await http.post(
+          Uri.parse('$baseUrl/geocode'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'address': baseAddress}),
+        );
+
+        if (!mounted) return;
+        CustomCommonUtil.hideLoadingOverlay(context);
+
+        if (response.statusCode == 404) {
+          CustomCommonUtil.showErrorSnackbar(
+            context: context,
+            title: '저장 실패',
+            message: '주소를 찾을 수 없습니다.',
+            position: SnackbarPosition.bottom,
+          );
+          return;
+        }
+
+        if (response.statusCode == 503) {
+          CustomCommonUtil.showErrorSnackbar(
+            context: context,
+            title: '일시적 오류',
+            message: '좌표 변환 서비스가 지연되고 있습니다. 잠시 후 다시 시도해 주세요.',
+            position: SnackbarPosition.bottom,
+          );
+          return;
+        }
+
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          throw Exception('서버 오류(${response.statusCode})');
+        }
+
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        lat = data['lat'] as String?;
+        lng = data['lng'] as String?;
+      }
 
       if (!mounted) return;
       CustomCommonUtil.hideLoadingOverlay(context);
-
-      if (response.statusCode == 404) {
-        CustomCommonUtil.showErrorSnackbar(
-          context: context,
-          title: '저장 실패',
-          message: '주소를 찾을 수 없습니다.',
-          position: SnackbarPosition.bottom,
-        );
-        return;
-      }
-
-      if (response.statusCode == 503) {
-        CustomCommonUtil.showErrorSnackbar(
-          context: context,
-          title: '일시적 오류',
-          message: '좌표 변환 서비스가 지연되고 있습니다. 잠시 후 다시 시도해 주세요.',
-          position: SnackbarPosition.bottom,
-        );
-        return;
-      }
-
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception('서버 오류(${response.statusCode})');
-      }
-
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final lat = data['lat'] as String?;
-      final lng = data['lng'] as String?;
 
       if (lat == null || lng == null) {
         debugPrint('[AddressSave] status=failed reason=no_coordinates lat=$lat lng=$lng');
