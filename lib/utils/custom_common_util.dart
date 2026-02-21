@@ -1,4 +1,5 @@
 import 'package:diabetes_app/config.dart';
+import 'package:diabetes_app/constants/config_ui.dart';
 import 'package:diabetes_app/utils/app_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -977,7 +978,9 @@ class CustomCommonUtil {
         SnackBar(
           duration: duration,
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          margin: const EdgeInsets.fromLTRB(
+            ConfigUI.screenPaddingH, 0, ConfigUI.screenPaddingH, 16,
+          ),
           backgroundColor: backgroundColor,
           content: Text(
             '$title\n$message',
@@ -1015,10 +1018,10 @@ class CustomCommonUtil {
             backgroundColor: Colors.transparent,
             elevation: 0,
             child: Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(ConfigUI.screenPaddingH),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: ConfigUI.cardRadius,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,

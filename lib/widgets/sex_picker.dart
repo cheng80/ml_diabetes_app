@@ -14,9 +14,24 @@ class SexPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return SegmentedButton<int>(
       style: ButtonStyle(
-        textStyle: MaterialStateProperty.all(PredictStyles.cardValue(context)),
+        textStyle: MaterialStateProperty.all(
+          PredictStyles.cardValue(context).copyWith(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return scheme.primaryContainer;
+          }
+          return scheme.surfaceContainerHighest;
+        }),
+        foregroundColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return scheme.onPrimaryContainer;
+          }
+          return scheme.onSurface;
+        }),
       ),
       segments: const [
         ButtonSegment(value: 1, label: Text('남성')),

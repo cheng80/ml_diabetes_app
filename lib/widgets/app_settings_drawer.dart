@@ -1,3 +1,4 @@
+import 'package:diabetes_app/constants/config_ui.dart';
 import 'package:diabetes_app/theme/theme_provider.dart';
 import 'package:diabetes_app/utils/app_storage.dart';
 import 'package:diabetes_app/utils/custom_common_util.dart';
@@ -6,6 +7,7 @@ import 'package:diabetes_app/view/diabetes_info_page.dart';
 import 'package:diabetes_app/view/hospital_search_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 // 세팅 드로워 (테마, API주소, 주소찾기, 병원찾기)
 class AppSettingsDrawer extends StatefulWidget {
@@ -16,7 +18,6 @@ class AppSettingsDrawer extends StatefulWidget {
 }
 
 class _AppSettingsDrawerState extends State<AppSettingsDrawer> {
-  static const String _version = '1.0.0';
   bool _showApiServerTile = false;
 
   void _onApiUrlTap(BuildContext context) {
@@ -124,7 +125,9 @@ class _AppSettingsDrawerState extends State<AppSettingsDrawer> {
                 setState(() => _showApiServerTile = !_showApiServerTile);
               },
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                padding: const EdgeInsets.fromLTRB(
+                  ConfigUI.screenPaddingH, 24, ConfigUI.screenPaddingH, 16,
+                ),
                 child: Row(
                   children: [
                     Icon(
@@ -197,7 +200,7 @@ class _AppSettingsDrawerState extends State<AppSettingsDrawer> {
             ListTile(
               leading: const Icon(Icons.menu_book_outlined),
               title: const Text('당뇨 건강정보'),
-              subtitle: const Text('진단 기준, 생활수칙, 응급 안내'),
+              subtitle: const Text('평가 참고기준, 생활수칙, 응급 안내'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -222,20 +225,29 @@ class _AppSettingsDrawerState extends State<AppSettingsDrawer> {
 
             const Spacer(),
 
-            // 푸터: 버전
+            // 푸터: 앱 버전 (package_info_plus)
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(ConfigUI.screenPaddingH),
               child: Align(
                 alignment: Alignment.center,
-                child: Text(
-                  _version,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ) ??
-                      TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                child: FutureBuilder<PackageInfo>(
+                  future: PackageInfo.fromPlatform(),
+                  builder: (context, snapshot) {
+                    final info = snapshot.data;
+                    final versionText = info != null
+                        ? 'v${info.version}+${info.buildNumber}'
+                        : '버전 정보 확인 중...';
+                    return Text(
+                      versionText,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ) ??
+                          TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                    );
+                  },
                 ),
               ),
             ),

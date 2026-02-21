@@ -8,7 +8,9 @@ import 'package:diabetes_app/widgets/age_picker.dart';
 import 'package:diabetes_app/widgets/height_weight_picker.dart';
 import 'package:diabetes_app/widgets/percentile_range_radio.dart';
 import 'package:diabetes_app/widgets/sex_picker.dart';
+import 'package:diabetes_app/constants/config_ui.dart';
 import 'package:diabetes_app/constants/predict_styles.dart';
+import 'package:diabetes_app/theme/app_theme_colors.dart';
 import 'package:diabetes_app/widgets/waist_circumference_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -87,8 +89,10 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(ConfigUI.radiusSheet),
+        ),
       ),
       builder: (context) {
         return DraggableScrollableSheet(
@@ -101,7 +105,9 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
               child: Column(
                 children: [
                   const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: ConfigUI.sheetButtonHeight - 18,
+                      ),
                     child: Text(
                       '분석 결과',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -111,7 +117,7 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
                   Expanded(
                     child: ListView(
                       controller: scrollController,
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(ConfigUI.screenPaddingH),
                       children: [
                         Text(
                           label,
@@ -119,7 +125,9 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: data['prediction'] == 1 ? Colors.red.shade600 : Colors.green.shade600,
+                            color: data['prediction'] == 1
+                                ? context.appTheme.dangerAccent
+                                : context.appTheme.successAccent,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -137,7 +145,7 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
                         ],
                         const SizedBox(height: 24),
                         const Text(
-                          '본 앱은 의학적 진단·치료용 앱이 아닙니다.\n예측 결과는 참고용이며,\n정확한 판단은 의료진 상담이 필요합니다.',
+                          '본 앱은 의료 진단·치료를 제공하지 않습니다.\n예측 결과는 건강관리 참고용이며,\n의학적 판단 및 치료 결정은 의료진 상담이 필요합니다.',
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 13, color: Colors.grey),
                         ),
@@ -146,7 +154,7 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
                   ),
                   const Divider(height: 1),
                   Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(ConfigUI.screenPaddingH),
                     child: Row(
                       children: [
                         Expanded(
@@ -279,7 +287,7 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
                   Text(
                     '공복 혈당 미선택 시에도 예측 가능하나, 정확도가 낮아질 수 있습니다.',
                     style: (Theme.of(context).textTheme.bodySmall ?? const TextStyle()).copyWith(
-                      color: Colors.red.shade400,
+                      color: context.appTheme.warningAccent,
                     ),
                   ),
                 ],

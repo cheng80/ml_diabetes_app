@@ -1,5 +1,6 @@
 import 'package:diabetes_app/constants/predict_styles.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:diabetes_app/constants/config_ui.dart';
 import 'package:flutter/material.dart';
 
 // 나이 19~120 (KNHANES 만19세 이상), 백십일 3휠
@@ -67,84 +68,104 @@ class _AgePickerState extends State<AgePicker> {
 
           final rawValue = h * 100 + t * 10 + o;
           final displayAge = rawValue.clamp(_minAge, _maxAge);
+          final scheme = Theme.of(context).colorScheme;
 
           return Container(
             height: 250,
-            color: CupertinoColors.systemBackground.resolveFrom(context),
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(ConfigUI.radiusSheet),
+              ),
+            ),
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CupertinoButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('취소'),
-                    ),
-                    CupertinoButton(
-                      onPressed: () {
-                        setState(() {
-                          _age = displayAge;
-                          _notifyChanged();
-                        });
-                        Navigator.pop(context);
-                      },
-                      child: const Text('확인'),
-                    ),
-                  ],
-                ),
-                Expanded(
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: ConfigUI.sheetPaddingH,
+                    vertical: 8,
+                  ),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: CupertinoPicker(
-                          scrollController: FixedExtentScrollController(
-                            initialItem: h,
-                          ),
-                          itemExtent: 40,
-                          onSelectedItemChanged: (i) =>
-                              updateValue(i, t, o),
-                          children: const [
-                            Center(child: Text('0')),
-                            Center(child: Text('1')),
-                          ],
-                        ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('취소', style: TextStyle(color: scheme.primary)),
                       ),
-                      Expanded(
-                        child: CupertinoPicker(
-                          scrollController: FixedExtentScrollController(
-                            initialItem: t,
-                          ),
-                          itemExtent: 40,
-                          onSelectedItemChanged: (i) =>
-                              updateValue(h, i, o),
-                          children: List.generate(
-                            10,
-                            (i) => Center(child: Text('$i')),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: CupertinoPicker(
-                          scrollController: FixedExtentScrollController(
-                            initialItem: o,
-                          ),
-                          itemExtent: 40,
-                          onSelectedItemChanged: (i) =>
-                              updateValue(h, t, i),
-                          children: List.generate(
-                            10,
-                            (i) => Center(child: Text('$i')),
-                          ),
-                        ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _age = displayAge;
+                            _notifyChanged();
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: Text('확인', style: TextStyle(color: scheme.primary)),
                       ),
                     ],
                   ),
+                ),
+                Expanded(
+                  child: CupertinoTheme(
+                    data: CupertinoThemeData(
+                      primaryColor: scheme.primary,
+                      brightness: Theme.of(context).brightness,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CupertinoPicker(
+                            scrollController: FixedExtentScrollController(
+                              initialItem: h,
+                            ),
+                            itemExtent: 40,
+                            onSelectedItemChanged: (i) =>
+                                updateValue(i, t, o),
+                            children: const [
+                              Center(child: Text('0')),
+                              Center(child: Text('1')),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: CupertinoPicker(
+                            scrollController: FixedExtentScrollController(
+                              initialItem: t,
+                            ),
+                            itemExtent: 40,
+                            onSelectedItemChanged: (i) =>
+                                updateValue(h, i, o),
+                            children: List.generate(
+                              10,
+                              (i) => Center(child: Text('$i')),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: CupertinoPicker(
+                            scrollController: FixedExtentScrollController(
+                              initialItem: o,
+                            ),
+                            itemExtent: 40,
+                            onSelectedItemChanged: (i) =>
+                                updateValue(h, t, i),
+                            children: List.generate(
+                              10,
+                              (i) => Center(child: Text('$i')),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Text(
                     '$displayAge세',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: scheme.onSurface,
+                    ),
                   ),
                 ),
               ],
@@ -159,10 +180,10 @@ class _AgePickerState extends State<AgePicker> {
   Widget build(BuildContext context) {
     return Material(
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: ConfigUI.inputRadius,
       child: InkWell(
         onTap: _showAgePicker,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: ConfigUI.inputRadius,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
           child: Row(
@@ -171,7 +192,9 @@ class _AgePickerState extends State<AgePicker> {
               Expanded(
                 child: Text(
                   '$_age세',
-                  style: PredictStyles.cardValue(context),
+                  style: PredictStyles.cardValue(context).copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),

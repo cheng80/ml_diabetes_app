@@ -1,3 +1,4 @@
+import 'package:diabetes_app/constants/config_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -13,7 +14,7 @@ class DiabetesInfoPage extends StatelessWidget {
       ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(ConfigUI.screenPaddingH),
           children: [
             _HeroHeaderCard(
               title: 'GlucoInsight 건강 가이드',
@@ -23,14 +24,14 @@ class DiabetesInfoPage extends StatelessWidget {
             const SizedBox(height: 12),
             _InfoSectionCard(
               icon: Icons.analytics_outlined,
-              title: '당뇨병 진단 기준',
+              title: '당뇨병 평가 참고 기준',
               children: const [
                 _BulletText('당화혈색소(HbA1c) 6.5% 이상'),
                 _BulletText('8시간 공복 혈당 126 mg/dL 이상'),
                 _BulletText('75g 경구당부하검사 2시간 혈당 200 mg/dL 이상'),
                 _BulletText('다뇨/다음/체중감소 증상 + 무작위 혈당 200 mg/dL 이상'),
               ],
-              footnote: '한 가지 이상 해당되면 당뇨병 진단 기준에 해당할 수 있습니다.',
+              footnote: '한 가지 이상 해당되면 위험 신호에 해당할 수 있습니다.',
             ),
             const SizedBox(height: 12),
             _InfoSectionCard(
@@ -84,11 +85,11 @@ class DiabetesInfoPage extends StatelessWidget {
               elevation: 0,
               color: colorScheme.surfaceContainerLowest,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: colorScheme.outlineVariant),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
+        borderRadius: ConfigUI.cardRadius,
+        side: BorderSide(color: colorScheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(ConfigUI.screenPaddingH),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -105,7 +106,7 @@ class DiabetesInfoPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     const _SourceItem(
-                      title: '대한당뇨병학회 - 당뇨병 진단·증상 정보',
+                      title: '대한당뇨병학회 - 당뇨병 기준·증상 정보',
                       url: 'https://www.diabetes.or.kr/general/info/info_01.php?con=5',
                     ),
                     const SizedBox(height: 8),
@@ -143,15 +144,26 @@ class _HeroHeaderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        gradient: LinearGradient(
-          colors: [
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // 다크모드: 밝은 그라데이션 시 글자 가림 → 진한 민트/틸 계열로 변경
+    final gradientColors = isDark
+        ? [
+            const Color(0xFF1B3D3D),
+            const Color(0xFF2A5C5C),
+          ]
+        : [
             colorScheme.primaryContainer,
             colorScheme.tertiaryContainer,
-          ],
+          ];
+    final textColor = isDark ? Colors.white : colorScheme.onSurface;
+
+    return Container(
+      padding: const EdgeInsets.all(ConfigUI.screenPaddingH),
+      decoration: BoxDecoration(
+        borderRadius: ConfigUI.cardRadius,
+        gradient: LinearGradient(
+          colors: gradientColors,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -163,12 +175,15 @@ class _HeroHeaderCard extends StatelessWidget {
             title,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w800,
+                  color: textColor,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
             subtitle,
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: textColor,
+                ),
           ),
         ],
       ),
@@ -195,11 +210,11 @@ class _InfoSectionCard extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: ConfigUI.cardRadius,
         side: BorderSide(color: colorScheme.outlineVariant),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(ConfigUI.screenPaddingH),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -274,9 +289,12 @@ class _SourceItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(
+        horizontal: ConfigUI.inputPaddingH,
+        vertical: ConfigUI.inputPaddingV,
+      ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: ConfigUI.inputRadius,
         color: colorScheme.surface,
       ),
       child: Column(

@@ -1,3 +1,4 @@
+import 'package:diabetes_app/constants/config_ui.dart';
 import 'package:diabetes_app/constants/predict_styles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -62,51 +63,74 @@ class _HeightWeightPickerState extends State<HeightWeightPicker> {
     int selected = _height;
     await showCupertinoModalPopup<void>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          height: 250,
-          color: CupertinoColors.systemBackground.resolveFrom(context),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CupertinoButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('취소'),
-                  ),
-                  CupertinoButton(
-                    onPressed: () {
-                      setState(() {
-                        _height = selected;
-                        _notifyChanged();
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: const Text('확인'),
-                  ),
-                ],
+      builder: (context) {
+        final scheme = Theme.of(context).colorScheme;
+        return StatefulBuilder(
+          builder: (context, setModalState) => Container(
+            height: 250,
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(ConfigUI.radiusSheet),
               ),
-              Expanded(
-                child: CupertinoPicker(
-                  scrollController: FixedExtentScrollController(
-                    initialItem: _height - _heightMin,
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: ConfigUI.sheetPaddingH,
+                    vertical: 8,
                   ),
-                  itemExtent: 40,
-                  onSelectedItemChanged: (i) =>
-                      setModalState(() => selected = _heightMin + i),
-                  children: List.generate(
-                    _heightStepCount,
-                    (i) => Center(
-                      child: Text('${_heightMin + i} cm'),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('취소', style: TextStyle(color: scheme.primary)),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _height = selected;
+                            _notifyChanged();
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: Text('확인', style: TextStyle(color: scheme.primary)),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: CupertinoTheme(
+                    data: CupertinoThemeData(
+                      primaryColor: scheme.primary,
+                      brightness: Theme.of(context).brightness,
+                    ),
+                    child: CupertinoPicker(
+                      scrollController: FixedExtentScrollController(
+                        initialItem: _height - _heightMin,
+                      ),
+                      itemExtent: 40,
+                      onSelectedItemChanged: (i) =>
+                          setModalState(() => selected = _heightMin + i),
+                      children: List.generate(
+                        _heightStepCount,
+                        (i) => Center(
+                          child: Text(
+                            '${_heightMin + i} cm',
+                            style: TextStyle(color: scheme.onSurface),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -114,51 +138,74 @@ class _HeightWeightPickerState extends State<HeightWeightPicker> {
     int selected = _weight;
     await showCupertinoModalPopup<void>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          height: 250,
-          color: CupertinoColors.systemBackground.resolveFrom(context),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CupertinoButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('취소'),
-                  ),
-                  CupertinoButton(
-                    onPressed: () {
-                      setState(() {
-                        _weight = selected;
-                        _notifyChanged();
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: const Text('확인'),
-                  ),
-                ],
+      builder: (context) {
+        final scheme = Theme.of(context).colorScheme;
+        return StatefulBuilder(
+          builder: (context, setModalState) => Container(
+            height: 250,
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(ConfigUI.radiusSheet),
               ),
-              Expanded(
-                child: CupertinoPicker(
-                  scrollController: FixedExtentScrollController(
-                    initialItem: _weight - _weightMin,
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: ConfigUI.sheetPaddingH,
+                    vertical: 8,
                   ),
-                  itemExtent: 40,
-                  onSelectedItemChanged: (i) =>
-                      setModalState(() => selected = _weightMin + i),
-                  children: List.generate(
-                    _weightStepCount,
-                    (i) => Center(
-                      child: Text('${_weightMin + i} kg'),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('취소', style: TextStyle(color: scheme.primary)),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _weight = selected;
+                            _notifyChanged();
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: Text('확인', style: TextStyle(color: scheme.primary)),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: CupertinoTheme(
+                    data: CupertinoThemeData(
+                      primaryColor: scheme.primary,
+                      brightness: Theme.of(context).brightness,
+                    ),
+                    child: CupertinoPicker(
+                      scrollController: FixedExtentScrollController(
+                        initialItem: _weight - _weightMin,
+                      ),
+                      itemExtent: 40,
+                      onSelectedItemChanged: (i) =>
+                          setModalState(() => selected = _weightMin + i),
+                      children: List.generate(
+                        _weightStepCount,
+                        (i) => Center(
+                          child: Text(
+                            '${_weightMin + i} kg',
+                            style: TextStyle(color: scheme.onSurface),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -317,7 +364,9 @@ class _PickerTile extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: PredictStyles.cardLabel(context),
+                style: PredictStyles.cardLabel(context).copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
@@ -328,7 +377,9 @@ class _PickerTile extends StatelessWidget {
                   Expanded(
                     child: Text(
                       value,
-                      style: PredictStyles.cardValue(context),
+                      style: PredictStyles.cardValue(context).copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),

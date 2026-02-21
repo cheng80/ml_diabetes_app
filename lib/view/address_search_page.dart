@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:diabetes_app/constants/config_ui.dart';
 import 'package:diabetes_app/utils/app_storage.dart';
 import 'package:diabetes_app/utils/custom_common_util.dart';
 import 'package:flutter/cupertino.dart';
@@ -192,7 +193,7 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(ConfigUI.screenPaddingH),
           child: Form(
             key: _formKey,
             child: Column(

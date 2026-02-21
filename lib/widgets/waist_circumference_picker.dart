@@ -1,3 +1,4 @@
+import 'package:diabetes_app/constants/config_ui.dart';
 import 'package:diabetes_app/constants/predict_styles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -87,47 +88,77 @@ class _WaistCircumferencePickerState extends State<WaistCircumferencePicker> {
             });
           }
 
+          final scheme = Theme.of(context).colorScheme;
           return Container(
             height: 300,
-            color: CupertinoColors.systemBackground.resolveFrom(context),
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(ConfigUI.radiusSheet),
+              ),
+            ),
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: ConfigUI.sheetPaddingH,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CupertinoButton(
+                    TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('취소'),
+                      child: Text('취소', style: TextStyle(color: scheme.primary)),
                     ),
-                    CupertinoButton(
+                    TextButton(
                       onPressed: () {
-                          final val = indexToVal(selectedIndex);
-                          if (modalUseCm) {
-                            _valueCm = val.clamp(_cmMin, _cmMax);
-                          } else {
-                            _valueCm =
-                                (val * 2.54).round().clamp(_cmMin, _cmMax);
-                          }
-                          setState(() {
-                            _useCm = modalUseCm;
-                            _notifyChanged();
-                          });
-                          Navigator.pop(context);
-                        },
-                        child: const Text('확인'),
-                      ),
+                        final val = indexToVal(selectedIndex);
+                        if (modalUseCm) {
+                          _valueCm = val.clamp(_cmMin, _cmMax);
+                        } else {
+                          _valueCm =
+                              (val * 2.54).round().clamp(_cmMin, _cmMax);
+                        }
+                        setState(() {
+                          _useCm = modalUseCm;
+                          _notifyChanged();
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: Text('확인', style: TextStyle(color: scheme.primary)),
+                    ),
                     ],
                   ),
+                ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: ConfigUI.sheetPaddingH,
+                    vertical: 8,
+                  ),
                   child: SegmentedButton<bool>(
                     style: ButtonStyle(
                       padding: MaterialStateProperty.all(
-                        const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                        const EdgeInsets.symmetric(
+                          horizontal: ConfigUI.chipPaddingH,
+                          vertical: ConfigUI.chipPaddingV + 4,
+                        ),
                       ),
                       textStyle: MaterialStateProperty.all(
                         Theme.of(context).textTheme.titleSmall,
                       ),
+                      backgroundColor: MaterialStateProperty.resolveWith((states) {
+                        if (states.contains(MaterialState.selected)) {
+                          return scheme.primaryContainer;
+                        }
+                        return scheme.surfaceContainerHighest;
+                      }),
+                      foregroundColor: MaterialStateProperty.resolveWith((states) {
+                        if (states.contains(MaterialState.selected)) {
+                          return scheme.onPrimaryContainer;
+                        }
+                        return scheme.onSurface;
+                      }),
                     ),
                     segments: const [
                       ButtonSegment(value: true, label: Text('cm')),
@@ -138,18 +169,27 @@ class _WaistCircumferencePickerState extends State<WaistCircumferencePicker> {
                   ),
                 ),
                 Expanded(
-                  child: CupertinoPicker(
-                    scrollController: FixedExtentScrollController(
-                      initialItem:
-                          selectedIndex.clamp(0, stepCount - 1),
+                  child: CupertinoTheme(
+                    data: CupertinoThemeData(
+                      primaryColor: scheme.primary,
+                      brightness: Theme.of(context).brightness,
                     ),
-                    itemExtent: 40,
-                    onSelectedItemChanged: (i) =>
-                        setModalState(() => selectedIndex = i),
-                    children: List.generate(
-                      stepCount,
-                      (i) => Center(
-                        child: Text('${indexToVal(i)} $unitLabel'),
+                    child: CupertinoPicker(
+                      scrollController: FixedExtentScrollController(
+                        initialItem:
+                            selectedIndex.clamp(0, stepCount - 1),
+                      ),
+                      itemExtent: 40,
+                      onSelectedItemChanged: (i) =>
+                          setModalState(() => selectedIndex = i),
+                      children: List.generate(
+                        stepCount,
+                        (i) => Center(
+                          child: Text(
+                            '${indexToVal(i)} $unitLabel',
+                            style: TextStyle(color: scheme.onSurface),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -181,14 +221,18 @@ class _WaistCircumferencePickerState extends State<WaistCircumferencePicker> {
                   children: [
                     Text(
                       '허리둘레',
-                      style: PredictStyles.cardLabel(context),
+                      style: PredictStyles.cardLabel(context).copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
                         Text(
                           _useCm ? '$_valueCm cm' : '${(_valueCm / 2.54).round()} inch',
-                          style: PredictStyles.cardValue(context),
+                          style: PredictStyles.cardValue(context).copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         FilledButton.tonal(
@@ -204,10 +248,14 @@ class _WaistCircumferencePickerState extends State<WaistCircumferencePicker> {
                             ),
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                            foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
                           ),
                           child: Text(
                             _useCm ? 'inch로 보기' : 'cm로 보기',
-                            style: Theme.of(context).textTheme.labelLarge,
+                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],

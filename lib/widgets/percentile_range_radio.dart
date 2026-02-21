@@ -1,5 +1,6 @@
 import 'package:diabetes_app/constants/diabetes_predict_mapping.dart';
 import 'package:diabetes_app/constants/predict_styles.dart';
+import 'package:diabetes_app/constants/config_ui.dart';
 import 'package:flutter/material.dart';
 
 // 분위 구간 라디오 (인덱스 0~3 반환, BloodGlucoseMapping/PregnancyMapping 참고)
@@ -30,7 +31,7 @@ class PercentileRangeRadio extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onChanged != null ? () => onChanged!(index) : null,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(ConfigUI.radiusInput - 2),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
           child: Row(
@@ -50,7 +51,9 @@ class PercentileRangeRadio extends StatelessWidget {
                   ranges[index].$1 == ranges[index].$2
                       ? '${ranges[index].$1}'
                       : '${ranges[index].$1}~${ranges[index].$2}',
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -64,7 +67,7 @@ class PercentileRangeRadio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(ConfigUI.inputPaddingH),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
