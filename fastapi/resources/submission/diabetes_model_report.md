@@ -6,7 +6,7 @@
 
 - 우리 팀은 건강검진 데이터로 “당뇨 위험”을 예측하는 AI 모델을 만들었습니다.
 - 기존 핵심 피처(`sex(성별)`, `age(나이)`, `HE_BMI(BMI)`, `HE_wc(허리둘레)`, `HE_glu(공복 혈당)`)만으로도 실사용 가능한 성능을 확인했습니다.
-- 추가 선택형 피처(F1~F2)는 별도 시뮬레이션 검증 후 앱/서버에 조건부 반영했으며, 성능 지표(Recall/FN/FP)는 지속 모니터링합니다.
+- 추가 선택형 피처(F1~F2)는 별도 시뮬레이션 검증 후 앱/서버에 조건부 반영했고, 운영에서는 블렌드 판정 임계값(`BLEND_THRESHOLD=0.54`)을 적용해 오탐(FP)을 억제합니다.
 
 ---
 
@@ -82,7 +82,7 @@
 | 2차 필터 | `HE_DM_HbA1c(당뇨 유병)` ∈ {1,2,3} | 5,914 | 72.9% |
 | 3차 필터 | 기본 피처 유효 (`HE_BMI(BMI)`, `HE_wc(허리둘레)`, `HE_ht(키)` > 0) | 5,874 | 72.4% |
 
-### 3-5. 모델 입력 데이터프레임 info (핵심/확장 변수 결측 현황)
+### 3-5. 모델 입력 데이터프레임 정보 (핵심/확장 변수 결측 현황)
 
 > 기준 데이터프레임: 3차 필터 후 `n=5,874`
 
@@ -100,7 +100,7 @@
 > 참고: `HE_glu(공복 혈당)`는 데이터셋 전체에는 고값(outlier)이 일부 존재하며, 앱 API에서는 입력 범위(44~199)를 사용합니다.  
 > 기본 유효 표본 5,874건 중 앱 입력 범위(44~199)에 해당하는 건수는 5,813건입니다.
 
-### 3-6. 핵심 연속형 변수 describe (기본 유효 표본, n=5,874)
+### 3-6. 핵심 연속형 변수 요약 통계(Describe, 기본 유효 표본 n=5,874)
 
 | 변수 | mean | std | min | 25% | 50%(median) | 75% | max |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -156,18 +156,18 @@
 
 ---
 
-## 5. Train / Validation / Test 나누기
+## 5. 학습/검증/시험 데이터 분할
 
-| 데이터 묶음 | 비율 | 역할 |
+| 데이터 구분 | 비율 | 역할 |
 |---|---:|---|
 | Train | 70% | 모델 학습 |
 | Validation | 10% | 기준점(임계값) 조정 |
 | Test | 20% | 최종 성능 평가 |
 
 쉽게 말해,
-- **Train**: 공부용
-- **Validation**: 모의고사
-- **Test**: 최종 시험
+- **학습(Train)**: 모델 학습용
+- **검증(Validation)**: 임계값 조정용
+- **시험(Test)**: 최종 성능 평가용
 
 ---
 
@@ -265,9 +265,9 @@
 
 ---
 
-## 11. 그림으로 보는 결과 (이미지 중심)
+## 11. 그림으로 보는 결과(시각화 요약)
 
-### Figure 1. 테스트 지표 비교
+### 그림 1. 테스트 지표 비교
 ![Figure 1](./assets/fig_01_test_metrics_comparison.png)
 
 - 이 차트는 두 시나리오(혈당 포함/미포함)의 핵심 성능 지표를 한 번에 비교합니다.
@@ -275,7 +275,7 @@
 - Y축: 점수(0~1)
 - 해석 포인트: 막대가 **높을수록 성능이 좋음**. 대부분 지표에서 혈당 포함 막대가 더 높습니다.
 
-### Figure 2. CV 점수 및 임계값 비교
+### 그림 2. 교차검증(CV) 점수 및 임계값 비교
 ![Figure 2](./assets/fig_02_cv_threshold_comparison.png)
 
 - 이 차트는 모델 선택에 사용된 교차검증 점수와 최종 임계값(threshold)을 비교합니다.
@@ -283,7 +283,7 @@
 - Y축: 값(0~1)
 - 해석 포인트: CV 점수는 **높을수록 좋고**, Threshold는 분류 경계값으로 높고 낮음 자체보다 운영 목적(민감도/정밀도)에 따라 의미가 달라집니다.
 
-### Figure 3. 레이더 차트(종합 성능)
+### 그림 3. 레이더 차트(종합 성능)
 ![Figure 3](./assets/fig_03_metrics_radar.png)
 
 - 이 차트는 여러 지표를 원형으로 동시에 보여주는 종합 비교 그래프입니다.
@@ -291,7 +291,7 @@
 - 중심에서 바깥쪽으로 갈수록 점수가 큼(0→1)
 - 해석 포인트: 면적이 넓고 바깥쪽일수록 전반 성능이 좋습니다. 혈당 포함 모델의 면적이 더 큽니다.
 
-### Figure 4. Confusion Matrix 비교
+### 그림 4. 혼동행렬(Confusion Matrix) 비교
 ![Figure 4](./assets/fig_04_confusion_matrix_comparison.png)
 
 - 이 차트는 정답/오답을 2x2 표로 보여줍니다.
@@ -299,7 +299,7 @@
 - 셀 의미: TN(정상 맞춤), FP(정상을 당뇨로 예측), FN(당뇨를 정상으로 놓침), TP(당뇨 맞춤)
 - 해석 포인트: 의료 관점에서는 **FN이 낮을수록 유리**합니다. 혈당 포함 모델의 FN이 더 낮습니다.
 
-### Figure 5. ROC Curve 비교
+### 그림 5. ROC 곡선 비교
 ![Figure 5](./assets/fig_05_roc_curve_comparison.png)
 
 - 이 차트는 임계값을 바꿀 때 모델의 구분 능력이 어떻게 변하는지 보여줍니다.
@@ -307,7 +307,7 @@
 - Y축: TPR(True Positive Rate, 실제 양성 탐지율 = Recall)
 - 해석 포인트: 곡선이 **왼쪽 위에 가까울수록 좋고**, AUC 값이 **높을수록 좋습니다**.
 
-### Figure 6. 피처 수 비교
+### 그림 6. 입력 변수(피처) 수 비교
 ![Figure 6](./assets/fig_06_feature_count.png)
 
 - 이 차트는 시나리오별 입력 피처 개수를 비교합니다.
@@ -315,7 +315,7 @@
 - Y축: 시나리오(혈당 포함/미포함)
 - 해석 포인트: 혈당 포함 시나리오가 피처 1개(`HE_glu`) 더 많습니다.
 
-### Figure 7. Precision/Recall/F1 비교
+### 그림 7. 정밀도(Precision)/재현율(Recall)/F1 비교
 ![Figure 7](./assets/fig_07_positive_class_metrics.png)
 
 - 이 차트는 양성 클래스(당뇨) 중심 지표만 따로 비교합니다.
@@ -323,7 +323,7 @@
 - Y축: 점수(0~1)
 - 해석 포인트: 막대가 **높을수록 좋음**. 특히 Recall 차이를 통해 환자 탐지 능력 차이를 확인할 수 있습니다.
 
-### Figure 8. 오류 유형(FP/FN) 비교
+### 그림 8. 오류 유형(FP/FN) 비교
 ![Figure 8](./assets/fig_08_error_type_comparison.png)
 
 - 이 차트는 모델이 만든 두 가지 핵심 오류(FP, FN) 개수를 비교합니다.
@@ -361,8 +361,13 @@ python train_knhanes.py --feature-eng --poly --smote --score-by balanced_recall 
 | `glu_binned` | 혈당 구간값(midpoint)으로 입력한 경우 |
 | `no_glu` | `HE_glu(공복 혈당)` 미입력 |
 | `blend` | 혈당 의존도 완화를 위한 확률 혼합: `0.55 * no_glu + 0.45 * glu` |
+| `blend_exact` | 혈당+기타위험인자 혼합(정밀혈당 입력) |
+| `blend_binned` | 혈당+기타위험인자 혼합(구간혈당 입력) |
 
 ### 13-2. 시뮬레이션 결과 표 (`resources/simulation/simulation_summary.csv`)
+
+> 참고: 본 표의 **예측률**은 `Accuracy(정확도)`를 의미합니다.  
+> 참고: `FN`은 당뇨를 놓친 건수, `FP`는 비당뇨를 당뇨로 예측한 건수입니다.
 
 | 시나리오 | Accuracy | Precision | Recall | F1 | ROC-AUC | FP | FN |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -371,6 +376,9 @@ python train_knhanes.py --feature-eng --poly --smote --score-by balanced_recall 
 | no_glu | 0.9020 | 0.5923 | 0.8790 | 0.7077 | 0.9156 | 95 | 19 |
 | blend_exact | 0.8942 | 0.5620 | 0.9809 | 0.7146 | 0.9840 | 120 | 3 |
 | blend_binned | 0.8564 | 0.4843 | 0.9809 | 0.6484 | 0.9783 | 164 | 3 |
+
+> 한 줄 요약: **정확도(Accuracy) 최고**는 `glu_exact(94.75%)`,  
+> **환자 탐지율(Recall) 최고**는 `blend_exact/blend_binned(98.09%)`입니다.
 
 ### 13-3. 해석 요약
 
@@ -385,6 +393,23 @@ python train_knhanes.py --feature-eng --poly --smote --score-by balanced_recall 
 - ![Simulation Metrics](../simulation/fig_simulation_metrics.png)
 - ![Simulation Errors](../simulation/fig_simulation_errors.png)
 
+### 13-5. 블렌드 운영점(Threshold) 조정 결과
+
+> 아래 값은 재학습 없이, 기존 모델의 blend 확률에 대한 최종 분류 경계값만 조정한 결과입니다.  
+> 적용 기준: `GLUCOSE_BLEND_WEIGHT=0.55` 고정, `BLEND_THRESHOLD` 상향.
+
+| 구분 | weight | threshold | exact (FP/FN) | binned (FP/FN) |
+|---|---:|---:|---:|---:|
+| 조정 전(탐지 극대화 운영점) | 0.55 | 0.15 | 120 / 3 | 164 / 3 |
+| 조정 후(FP 억제 운영점) | 0.55 | 0.54 | 32 / 21 | 45 / 20 |
+
+- 해석:
+  - threshold 상향 시 오탐(FP)은 크게 줄어든다.
+  - 대신 FN(놓침)은 증가하므로, 목표(오탐 억제 vs 놓침 최소화)에 맞는 운영점 선택이 필요하다.
+- 산출 파일:
+  - `resources/simulation/blend_threshold_sweep.csv`
+  - `resources/simulation/blend_threshold_tuning.md`
+
 ---
 
 ## 14. F1~F2 사전 검증 결과 (추가 피처 플랜)
@@ -398,7 +423,10 @@ python train_knhanes.py --feature-eng --poly --smote --score-by balanced_recall 
 
 ### 14-2. F1/F2 분리(Ablation) 포함 결과 표 (`resources/simulation/feature_plan_simulation_summary.csv`)
 
-| 시나리오 | optional mode | glucose mode | Accuracy | Precision | Recall | F1 | ROC-AUC | FP | FN |
+> 용어: `optional mode`에서 `none`=보강 입력 미사용, `f1`=가족력만 사용, `f2`=고혈압/혈압약만 사용, `f12`=둘 다 사용  
+> 용어: `glucose mode`에서 `none`=혈당 미입력, `binned`=구간 혈당, `exact`=정밀 혈당
+
+| 시나리오 | 보강 입력 모드(optional mode) | 혈당 입력 모드(glucose mode) | Accuracy | Precision | Recall | F1 | ROC-AUC | FP | FN |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|
 | base_no_glu | none | none | 0.7219 | 0.2830 | 0.6095 | 0.3865 | 0.6974 | 261 | 66 |
 | opt1_no_glu | f1 | none | 0.7287 | 0.2984 | 0.6568 | 0.4104 | 0.7211 | 261 | 58 |
@@ -452,6 +480,9 @@ python simulate_optional_input_cases.py
 
 # 플랜 피처(F1~F2) 포함/미포함 시뮬레이션
 python simulate_feature_plan_cases.py
+
+# 재학습 없이 운영점 튜닝 (blend weight / threshold)
+python tune_blend_operating_point.py
 ```
 
 ---
@@ -464,6 +495,7 @@ python simulate_feature_plan_cases.py
 | 입력 정책 | `HE_wc(허리둘레)`는 필수 입력으로 유지 |
 | 확장 우선순위 | F2(고혈압/혈압약) 단독 우선 → F1(가족력)은 조건부 검토 |
 | 운영 방향 | 기본 경로를 유지하면서, 확장 경로는 검증 결과에 따라 반영 |
+| 운영 파라미터 | `GLUCOSE_BLEND_WEIGHT=0.55`, `BLEND_THRESHOLD=0.54` 적용(FP 억제 목적) |
 
 ### 17-1. 단계별 반영안(초안)
 
@@ -489,7 +521,7 @@ python simulate_feature_plan_cases.py
 
 ### 18-1. 케이스 요약 표
 
-| 케이스 | 목적 | HTTP | prediction / probability | used_model | 정책 확인 포인트 |
+| 케이스 | 목적 | HTTP | 예측 결과(prediction/probability) | 사용 모델(used_model) | 정책 확인 포인트 |
 |---|---|---:|---|---|---|
 | case1_knhanes_no_glu_f1f2 | 혈당 미입력 + F1/F2 동시 입력 | 200 | 1 / 1.0 | KNHANES 혈당 미포함 | `input`에 `family_history_dm`, `htn_or_med` 모두 포함 |
 | case2_knhanes_glu_f1f2 | 혈당 입력 + F1/F2 동시 입력 | 200 | 1 / 0.55 | KNHANES 블렌드 | `input`에서 `family_history_dm` 제외, `htn_or_med` 유지 |

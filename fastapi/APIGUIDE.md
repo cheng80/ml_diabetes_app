@@ -190,6 +190,25 @@ final response = await http.post(
 | `waist_cm` 없음, `glucose` 있음 | Pima 혈당 포함 |
 | `waist_cm` 없음, `glucose` 없음 | Pima 혈당 미포함 |
 
+### 블렌드 운영 파라미터(재학습 없이 조정)
+
+혈당 포함 KNHANES 경로의 최종 판정은 아래 운영 파라미터로 조정됩니다.
+
+- `GLUCOSE_BLEND_WEIGHT` (기본 `0.55`): `0.55 * no_glu + 0.45 * glu`
+- `BLEND_THRESHOLD` (기본 `0.54`): blend 확률의 최종 분류 경계값
+
+예시:
+
+```bash
+export GLUCOSE_BLEND_WEIGHT=0.55
+export BLEND_THRESHOLD=0.54
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+참고:
+- threshold를 올리면 일반적으로 오탐(FP)은 줄고, 놓침(FN)은 늘 수 있습니다.
+- 이 파라미터는 재학습 없이 운영점을 조정할 때 사용합니다.
+
 ### 선택형 보강 입력(F1/F2) 서버 정책
 
 서버는 클라이언트 입력과 무관하게 최종 입력을 안전하게 정제합니다.

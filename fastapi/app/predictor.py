@@ -11,6 +11,8 @@ from matplotlib import font_manager as fm
 
 # 혈당 의존도 조절: 0.5=동등, 0.6=혈당미포함 60%+혈당포함 40% (혈당 영향 감소)
 GLUCOSE_BLEND_WEIGHT = float(os.environ.get("GLUCOSE_BLEND_WEIGHT", "0.55"))
+# 블렌드 경로 최종 판정 임계값(운영 FP 억제 목적). 미설정 시 0.54 사용.
+BLEND_THRESHOLD = float(os.environ.get("BLEND_THRESHOLD", "0.54"))
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -378,7 +380,7 @@ def predict_with_model(payload: PredictRequest) -> PredictResponse:
                 GLUCOSE_BLEND_WEIGHT * prob_no_glu
                 + (1.0 - GLUCOSE_BLEND_WEIGHT) * probability
             )
-            prediction = int(probability >= bundle.get("threshold", 0.5))
+            prediction = int(probability >= BLEND_THRESHOLD)
             used_model_name = (
                 f"KNHANES 블렌드 (위험인자 {GLUCOSE_BLEND_WEIGHT:.0%} + 혈당 {1-GLUCOSE_BLEND_WEIGHT:.0%})"
             )

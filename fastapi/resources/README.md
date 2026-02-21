@@ -56,6 +56,9 @@ python simulate_optional_input_cases.py
 
 # 확장 시나리오(F1/F2 분리 포함: none / f1 / f2 / f12)
 python simulate_feature_plan_cases.py
+
+# 운영점 튜닝(재학습 없이 blend 가중치/임계값 탐색)
+python tune_blend_operating_point.py
 ```
 
 주요 산출물:
@@ -68,3 +71,10 @@ python simulate_feature_plan_cases.py
 - `resources/simulation/feature_plan_simulation_summary.md`
 - `resources/simulation/feature_plan_sim_metrics.png`
 - `resources/simulation/feature_plan_sim_errors.png`
+- `resources/simulation/blend_threshold_sweep.csv`
+- `resources/simulation/blend_threshold_tuning.md`
+
+운영 기본값(현재):
+
+- `GLUCOSE_BLEND_WEIGHT=0.55`
+- `BLEND_THRESHOLD=0.54`
