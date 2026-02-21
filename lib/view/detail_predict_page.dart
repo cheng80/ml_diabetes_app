@@ -69,7 +69,9 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
 
   bool get _ok => _bmi > 0 && _waistCm > 0 && !_isSugarOut();
 
-  bool get _useOptionalQuestionsInModel => _sugarCtrl.text.trim().isEmpty;
+  bool get _hasSugarInput => _sugarCtrl.text.trim().isNotEmpty;
+  bool get _useF1InModel => !_hasSugarInput;
+  bool get _useF2InModel => true;
 
   void _applyProfile(PredictInputProfile profile) {
     _sex = profile.sex;
@@ -104,16 +106,15 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
         '허리둘레': _waistCm,
       };
 
-      if (_sugarCtrl.text.trim().isNotEmpty) {
+      if (_hasSugarInput) {
         body['혈당'] = int.parse(_sugarCtrl.text.trim());
       }
-      if (_useOptionalQuestionsInModel) {
-        if (_familyHistoryDm != -1) {
-          body['가족력'] = _familyHistoryDm;
-        }
-        if (_htnOrMed != -1) {
-          body['고혈압/혈압약'] = _htnOrMed;
-        }
+      // F2는 우선 반영, F1은 혈당 미입력 경로에서만 조건부 반영.
+      if (_useF2InModel && _htnOrMed != -1) {
+        body['고혈압/혈압약'] = _htnOrMed;
+      }
+      if (_useF1InModel && _familyHistoryDm != -1) {
+        body['가족력'] = _familyHistoryDm;
       }
 
       final response = await http.post(

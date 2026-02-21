@@ -64,6 +64,8 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 | `waist_cm` | `허리둘레` | float | 선택 | 있으면 KNHANES 분기 |
 | `sex` | `성별` | int | 선택 | 1=남, 2=여 |
 | `height_cm` | `키` | float | 선택 | KNHANES 파생피처 계산용 |
+| `family_history_dm` | `가족력` | int | 선택 | 0=아니오, 1=예 |
+| `htn_or_med` | `고혈압/혈압약` | int | 선택 | 0=아니오, 1=예 |
 
 ### 입력값 범위 검증
 
@@ -75,6 +77,8 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 | `pregnancies` | 0.0 ~ 17.0 |
 | `waist_cm` | 50.0 ~ 150.0 |
 | `height_cm` | 80.0 ~ 220.0 |
+| `family_history_dm` | 0.0 ~ 1.0 |
+| `htn_or_med` | 0.0 ~ 1.0 |
 
 ### 요청 예시 (KNHANES)
 
@@ -85,7 +89,9 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
   "키": 170,
   "BMI": 28.0,
   "허리둘레": 94.0,
-  "혈당": 95
+  "혈당": 95,
+  "가족력": 1,
+  "고혈압/혈압약": 0
 }
 ```
 
@@ -116,7 +122,9 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
   "키": 170,
   "BMI": 28.0,
   "허리둘레": 94.0,
-  "혈당": 95.0
+  "혈당": 95.0,
+  "가족력": 1,
+  "고혈압/혈압약": 0
 }
 ```
 
@@ -131,6 +139,8 @@ final body = {
   'BMI': 28.0,
   '허리둘레': 94.0,
   '혈당': 95.0, // 필요 없으면 제거
+  '가족력': 1, // 선택
+  '고혈압/혈압약': 0, // 선택
 };
 
 final response = await http.post(
@@ -179,6 +189,20 @@ final response = await http.post(
 | `waist_cm` 있고 `glucose` 없음 | KNHANES 혈당 미포함 |
 | `waist_cm` 없음, `glucose` 있음 | Pima 혈당 포함 |
 | `waist_cm` 없음, `glucose` 없음 | Pima 혈당 미포함 |
+
+### 선택형 보강 입력(F1/F2) 서버 정책
+
+서버는 클라이언트 입력과 무관하게 최종 입력을 안전하게 정제합니다.
+
+| 항목 | 정책 |
+|---|---|
+| `htn_or_med` (`고혈압/혈압약`) | KNHANES 경로에서 입력 시 우선 반영 |
+| `family_history_dm` (`가족력`) | 혈당 미입력 KNHANES 경로에서만 반영 |
+| KNHANES 외 경로(Pima) | `family_history_dm`, `htn_or_med`는 자동 제외 |
+
+참고:
+- 응답의 `input`은 **서버가 실제 사용한 최종 입력값**입니다.
+- 따라서 혈당 입력 요청에서 `가족력`을 함께 보내도 `input`에 제외될 수 있습니다.
 
 ### 주요 에러
 

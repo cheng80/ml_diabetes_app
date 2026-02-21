@@ -113,10 +113,14 @@ class _MyAppState extends State<MyApp> {
             unselectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
           ),
           appBarTheme: const AppBarThemeData(
+            backgroundColor: Color(0xFFF5F5F5),
+            foregroundColor: Color(0xFF212121),
             titleTextStyle: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20,
+              color: Color(0xFF212121),
             ),
+            iconTheme: IconThemeData(color: Color(0xFF212121)),
           ),
         ),
         darkTheme: ThemeData(
@@ -175,10 +179,14 @@ class _MyAppState extends State<MyApp> {
             unselectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
           ),
           appBarTheme: const AppBarThemeData(
+            backgroundColor: Color.fromRGBO(26, 26, 26, 1),
+            foregroundColor: Colors.white,
             titleTextStyle: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20,
+              color: Colors.white,
             ),
+            iconTheme: IconThemeData(color: Colors.white),
           ),
         ),
         themeMode: _themeMode,

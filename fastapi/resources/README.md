@@ -1,10 +1,11 @@
 # FastAPI Resources 안내
 
-`fastapi/resources`는 재학습/제출 관련 리소스를 모아두는 폴더입니다.
+`fastapi/resources`는 재학습/시뮬레이션/제출 관련 리소스를 모아두는 폴더입니다.
 
 ## 폴더 구조
 
 - `data/`: 원본 데이터 다운로드 위치 (`.sav`, 원시자료 PDF)
+- `simulation/`: 운영/확장 시나리오 비교 결과(CSV/MD/PNG)
 - `submission/`: 제출용 문서/차트
 
 ## 데이터 파일 배치
@@ -41,3 +42,29 @@ cd fastapi
 python train_knhanes.py --with-glucose --feature-eng --poly --smote --save
 python train_knhanes.py --feature-eng --poly --smote --save
 ```
+
+## 시뮬레이션 (운영/확장 검증)
+
+실험 재현 전 가상환경 활성화를 권장합니다.
+
+```bash
+cd fastapi
+source .venv/bin/activate
+
+# 운영 시나리오(glu_exact / glu_binned / no_glu / blend)
+python simulate_optional_input_cases.py
+
+# 확장 시나리오(F1/F2 분리 포함: none / f1 / f2 / f12)
+python simulate_feature_plan_cases.py
+```
+
+주요 산출물:
+
+- `resources/simulation/simulation_summary.csv`
+- `resources/simulation/simulation_summary.md`
+- `resources/simulation/fig_simulation_metrics.png`
+- `resources/simulation/fig_simulation_errors.png`
+- `resources/simulation/feature_plan_simulation_summary.csv`
+- `resources/simulation/feature_plan_simulation_summary.md`
+- `resources/simulation/feature_plan_sim_metrics.png`
+- `resources/simulation/feature_plan_sim_errors.png`

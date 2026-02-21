@@ -1,10 +1,10 @@
 """
-플랜 피처(F1~F4) 중 KNHANES에서 실사용 가능한 항목(F1~F3)을
+플랜 피처(F1~F4) 중 현재 반영 후보(F1~F2)를
 포함/미포함 비교 시뮬레이션으로 평가한다.
 
 F1: 가족력(당뇨)  -> HE_DMfh1/2/3 기반
 F2: 고혈압/혈압약 -> DI1_dg, HE_HPdr, HE_HP 기반
-F3: 운동량(주150분) -> BE3 활동 변수 기반
+F3: 운동량(주150분) -> 이번 실험 제외(신뢰성/가용성 보류)
 F4: 임신성 당뇨 이력 -> KNHANES 2019 직접 대응 컬럼 미확인(본 실험 제외)
 """
 
@@ -63,7 +63,7 @@ def _midpoint_glucose(v: float) -> float:
     return 169.5
 
 
-def _build_feature_frame(df: pd.DataFrame, glucose_mode: str, use_optional: bool) -> tuple[pd.DataFrame, pd.Series]:
+def _build_feature_frame(df: pd.DataFrame, glucose_mode: str, optional_mode: str) -> tuple[pd.DataFrame, pd.Series]:
     work = df.copy()
     work = work[work["age"] >= 19].copy()
     work = work[work["HE_DM_HbA1c"].isin([1, 2, 3])].copy()
@@ -98,7 +98,7 @@ def _build_feature_frame(df: pd.DataFrame, glucose_mode: str, use_optional: bool
     x["HE_whr"] = x["HE_wc"] / x["HE_ht"]
     x["HE_bmi_wc"] = x["HE_BMI"] * (x["HE_wc"] / 100.0)
 
-    if use_optional:
+    if optional_mode in {"f1", "f12"}:
         idx = x.index
         # F1 가족력(당뇨)
         f1 = pd.concat(
@@ -112,6 +112,8 @@ def _build_feature_frame(df: pd.DataFrame, glucose_mode: str, use_optional: bool
         # 1: 있음 / 0: 없음 / NaN: 모름
         x["F1_family_dm"] = np.where((f1 == 1).any(axis=1), 1.0, np.where((f1 == 0).all(axis=1), 0.0, np.nan))
 
+    if optional_mode in {"f2", "f12"}:
+        idx = x.index
         # F2 고혈압/혈압약
         di1 = _unknown_to_nan(work["DI1_dg"], (8.0, 9.0)).loc[idx]
         hpdr = _unknown_to_nan(work["HE_HPdr"], (8.0, 9.0)).loc[idx]
@@ -120,28 +122,13 @@ def _build_feature_frame(df: pd.DataFrame, glucose_mode: str, use_optional: bool
         f2_no = (di1 == 0) & (hpdr == 0) & (he_hp.isin([2, 3]))
         x["F2_htn_or_med"] = np.where(f2_yes, 1.0, np.where(f2_no, 0.0, np.nan))
 
-        # F3 운동량(WHO 유사): 2*고강도 + 중강도 + 걷기 >= 150분/주
-        vig_days = _unknown_to_nan(work["BE3_72"], (8.0, 9.0)).loc[idx]
-        vig_h = _unknown_to_nan(work["BE3_73"], (88.0, 99.0)).loc[idx]
-        vig_m = _unknown_to_nan(work["BE3_74"], (88.0, 99.0)).loc[idx]
-        mod_days = _unknown_to_nan(work["BE3_82"], (8.0, 9.0)).loc[idx]
-        mod_h = _unknown_to_nan(work["BE3_83"], (88.0, 99.0)).loc[idx]
-        mod_m = _unknown_to_nan(work["BE3_84"], (88.0, 99.0)).loc[idx]
-        walk_days = _unknown_to_nan(work["BE3_31"], (8.0, 9.0)).loc[idx]
-        walk_h = _unknown_to_nan(work["BE3_32"], (88.0, 99.0)).loc[idx]
-        walk_m = _unknown_to_nan(work["BE3_33"], (88.0, 99.0)).loc[idx]
-
-        vig_week = vig_days * (vig_h * 60 + vig_m)
-        mod_week = mod_days * (mod_h * 60 + mod_m)
-        walk_week = walk_days * (walk_h * 60 + walk_m)
-        mvpa_equiv = 2.0 * vig_week + mod_week + walk_week
-        x["F3_exercise_150"] = np.where(mvpa_equiv >= 150, 1.0, np.where(mvpa_equiv < 150, 0.0, np.nan))
-
     base_cols = ["sex", "age", "HE_BMI", "HE_wc", "HE_whr", "HE_bmi_wc"]
     if glucose_mode != "none":
         base_cols.append("HE_glu")
-    if use_optional:
-        base_cols += ["F1_family_dm", "F2_htn_or_med", "F3_exercise_150"]
+    if optional_mode in {"f1", "f12"}:
+        base_cols.append("F1_family_dm")
+    if optional_mode in {"f2", "f12"}:
+        base_cols.append("F2_htn_or_med")
 
     out = x[base_cols].copy()
     # 최소 기본정보는 존재해야 함
@@ -222,7 +209,7 @@ def _make_charts(df: pd.DataFrame, prefix: str) -> None:
     ax.set_ylim(0, 1)
     ax.set_xticks(x)
     ax.set_xticklabels(df["scenario"], rotation=15, ha="right")
-    ax.set_title("Feature Plan Simulation Metrics (F1~F3)")
+    ax.set_title("Feature Plan Simulation Metrics (F1~F2)")
     ax.grid(axis="y", alpha=0.25)
     ax.legend(ncol=3, fontsize=9)
     fig.tight_layout()
@@ -262,32 +249,29 @@ def main() -> None:
         "DI1_dg",
         "HE_HPdr",
         "HE_HP",
-        "BE3_72",
-        "BE3_73",
-        "BE3_74",
-        "BE3_82",
-        "BE3_83",
-        "BE3_84",
-        "BE3_31",
-        "BE3_32",
-        "BE3_33",
     ]
     df, _meta = pyreadstat.read_sav(str(SAV_PATH), usecols=usecols)
 
     scenarios = [
-        ("base_no_glu", "none", False),
-        ("base_glu_binned", "binned", False),
-        ("base_glu_exact", "exact", False),
-        ("opt123_no_glu", "none", True),
-        ("opt123_glu_binned", "binned", True),
-        ("opt123_glu_exact", "exact", True),
+        ("base_no_glu", "none", "none"),
+        ("base_glu_binned", "binned", "none"),
+        ("base_glu_exact", "exact", "none"),
+        ("opt1_no_glu", "none", "f1"),
+        ("opt1_glu_binned", "binned", "f1"),
+        ("opt1_glu_exact", "exact", "f1"),
+        ("opt2_no_glu", "none", "f2"),
+        ("opt2_glu_binned", "binned", "f2"),
+        ("opt2_glu_exact", "exact", "f2"),
+        ("opt12_no_glu", "none", "f12"),
+        ("opt12_glu_binned", "binned", "f12"),
+        ("opt12_glu_exact", "exact", "f12"),
     ]
 
     rows: list[dict[str, float | int | str]] = []
-    for name, glu_mode, use_opt in scenarios:
-        x, y = _build_feature_frame(df, glucose_mode=glu_mode, use_optional=use_opt)
+    for name, glu_mode, optional_mode in scenarios:
+        x, y = _build_feature_frame(df, glucose_mode=glu_mode, optional_mode=optional_mode)
         m = _fit_eval(x, y)
-        row = {"scenario": name, "glucose_mode": glu_mode, "use_optional_f123": int(use_opt)}
+        row = {"scenario": name, "glucose_mode": glu_mode, "optional_mode": optional_mode}
         row.update(m)
         rows.append(row)
         print(f"[done] {name} n={m['n_samples']} acc={m['accuracy']:.4f} recall={m['recall']:.4f}")
@@ -298,10 +282,11 @@ def main() -> None:
     out.to_csv(out_path_csv, index=False, encoding="utf-8-sig")
 
     md = []
-    md.append("# 플랜 피처(F1~F4) 사전 시뮬레이션 결과\n")
+    md.append("# 플랜 피처(F1~F4) 사전 시뮬레이션 결과 (F1/F2 중심)\n")
     md.append("- 데이터: KNHANES 2019 (기존)\n")
     md.append("- 모델: KNN(n=3, distance, p=2) + KNNImputer + StandardScaler + PolynomialFeatures + (가능 시)SMOTE\n")
     md.append("- 분할: train/val/test = 70/10/20, seed=42\n")
+    md.append("- F3(운동량): 신뢰성/가용성 이슈로 이번 실험 제외\n")
     md.append("- F4(임신성 당뇨 이력): 데이터셋 직접 대응 컬럼 미확인으로 이번 실험 제외\n")
     md.append(f"- SMOTE 사용: {'yes' if HAS_IMBLEARN else 'no'}\n\n")
     show = out.copy()

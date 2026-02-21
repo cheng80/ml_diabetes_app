@@ -113,6 +113,31 @@ def _txt(ko: str, en: str) -> str:
     return ko if USE_KOREAN_CHART_TEXT else en
 
 
+def _apply_optional_feature_policy(
+    user_provided: dict[str, float],
+    *,
+    use_knhanes: bool,
+    has_glucose: bool,
+) -> dict[str, float]:
+    """
+    선택형 보강 입력(F1/F2) 서버 안전장치.
+    - KNHANES 경로에서만 선택형 입력을 고려한다.
+    - F2(htn_or_med): 입력 시 우선 반영.
+    - F1(family_history_dm): 혈당 미입력 경로에서만 반영.
+    """
+    sanitized = dict(user_provided)
+
+    if not use_knhanes:
+        sanitized.pop("family_history_dm", None)
+        sanitized.pop("htn_or_med", None)
+        return sanitized
+
+    if has_glucose:
+        sanitized.pop("family_history_dm", None)
+
+    return sanitized
+
+
 # 정상 범위 기준 (당뇨 위험 관련)
 REF_BMI_NORMAL = 25
 REF_BMI_OBESE = 30
@@ -309,6 +334,26 @@ def predict_with_model(payload: PredictRequest) -> PredictResponse:
     if not user_provided:
         raise HTTPException(status_code=400, detail="최소 1개 이상의 입력 항목이 필요합니다.")
 
+    use_knhanes = user_provided.get("waist_cm") is not None and (
+        (KNHANES_NO_GLU and "glucose" not in user_provided)
+        or (KNHANES_GLU and "glucose" in user_provided)
+    )
+
+    bundle = None
+    has_glu = "glucose" in user_provided
+    if use_knhanes:
+        bundle = KNHANES_GLU if has_glu else KNHANES_NO_GLU
+        if bundle is None:
+            use_knhanes = False
+
+    # 서버 최종 정책으로 입력을 정제한다 (클라이언트 우회 대비).
+    user_provided = _apply_optional_feature_policy(
+        user_provided,
+        use_knhanes=use_knhanes,
+        has_glucose=has_glu,
+    )
+
+    # 정책 정제 이후의 입력만 범위 검증한다.
     for key, value in user_provided.items():
         if key in FEATURE_RANGES:
             min_v, max_v = FEATURE_RANGES[key]
@@ -319,41 +364,30 @@ def predict_with_model(payload: PredictRequest) -> PredictResponse:
                     detail=f"{lbl}({key}) 값은 {min_v} ~ {max_v} 범위여야 합니다.",
                 )
 
-    use_knhanes = user_provided.get("waist_cm") is not None and (
-        (KNHANES_NO_GLU and "glucose" not in user_provided)
-        or (KNHANES_GLU and "glucose" in user_provided)
-    )
-
-    bundle = None
     if use_knhanes:
-        has_glu = "glucose" in user_provided
-        bundle = KNHANES_GLU if has_glu else KNHANES_NO_GLU
-        if bundle is None:
-            use_knhanes = False
-        else:
-            if user_provided.get("sex") is None:
-                user_provided["sex"] = 1.0
-            if user_provided.get("height_cm") is None:
-                user_provided["height_cm"] = 170.0
-            probability, prediction, model_name = _predict_knhanes(bundle, user_provided)
+        if user_provided.get("sex") is None:
+            user_provided["sex"] = 1.0
+        if user_provided.get("height_cm") is None:
+            user_provided["height_cm"] = 170.0
+        probability, prediction, model_name = _predict_knhanes(bundle, user_provided)
 
-            # 혈당 포함 시 블렌딩: 혈당 의존도 감소 (BMI·허리둘레 등 다른 위험인자 반영)
-            if has_glu and KNHANES_NO_GLU is not None:
-                prob_no_glu, _, _ = _predict_knhanes(KNHANES_NO_GLU, user_provided)
-                probability = (
-                    GLUCOSE_BLEND_WEIGHT * prob_no_glu
-                    + (1.0 - GLUCOSE_BLEND_WEIGHT) * probability
-                )
-                prediction = int(probability >= bundle.get("threshold", 0.5))
-                used_model_name = (
-                    f"KNHANES 블렌드 (위험인자 {GLUCOSE_BLEND_WEIGHT:.0%} + 혈당 {1-GLUCOSE_BLEND_WEIGHT:.0%})"
-                )
-            else:
-                used_model_name = f"KNHANES ({model_name})" + (
-                    " 혈당 포함" if has_glu else " 혈당 미포함"
-                )
-            feature_names = bundle["features"]
-            model = bundle["model"]
+        # 혈당 포함 시 블렌딩: 혈당 의존도 감소 (BMI·허리둘레 등 다른 위험인자 반영)
+        if has_glu and KNHANES_NO_GLU is not None:
+            prob_no_glu, _, _ = _predict_knhanes(KNHANES_NO_GLU, user_provided)
+            probability = (
+                GLUCOSE_BLEND_WEIGHT * prob_no_glu
+                + (1.0 - GLUCOSE_BLEND_WEIGHT) * probability
+            )
+            prediction = int(probability >= bundle.get("threshold", 0.5))
+            used_model_name = (
+                f"KNHANES 블렌드 (위험인자 {GLUCOSE_BLEND_WEIGHT:.0%} + 혈당 {1-GLUCOSE_BLEND_WEIGHT:.0%})"
+            )
+        else:
+            used_model_name = f"KNHANES ({model_name})" + (
+                " 혈당 포함" if has_glu else " 혈당 미포함"
+            )
+        feature_names = bundle["features"]
+        model = bundle["model"]
     else:
         has_glucose = "glucose" in user_provided
         model = MODEL_SUGAR if has_glucose else MODEL_NO_SUGAR
