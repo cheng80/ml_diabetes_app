@@ -14,6 +14,7 @@ class AppStorage {
   AppStorage._();
 
   static GetStorage get _storage => GetStorage();
+  static GetStorage get rawStorage => _storage;
 
   // ─── 화면 간 상태 동기화 (추후 저장 항목 추가 예정) ─────────────────
   // 예: 예측 입력값, API URL, 마지막 탭 인덱스 등

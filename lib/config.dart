@@ -12,7 +12,12 @@ class AppConfig {
       'https://apis.data.go.kr/B552657/HsptlAsembySearchService/getHsptlMdcncLcinfoInqire';
 
   // ─── FastAPI ───────────────────────────────
-  // 기본값. 사용자 지정(AppStorage) 있으면 그걸 씀
-  static const String fastApiBaseUrlIos = 'http://127.0.0.1:8000';   // iOS/Windows/macOS
-  static const String fastApiBaseUrlAndroid = 'http://10.0.2.2:8000'; // Android 에뮬
+  /// 앱 최초 실행 시 사용할 FastAPI URL
+  /// - null이면 플랫폼 기본값(Android: 10.0.2.2, iOS/기타: 127.0.0.1) 사용
+  /// - 사용자가 드로워에서 저장한 값이 있으면 그 값을 우선 사용
+  static const String? fastApiBaseUrl = 'http://cheng80.myqnapcloud.com:18002';
+
+  /// config.fastApiBaseUrl 이 null일 때의 플랫폼 기본값
+  static const String fastApiBaseUrlIosDefault = 'http://127.0.0.1:8000'; // iOS/Windows/macOS
+  static const String fastApiBaseUrlAndroidDefault = 'http://10.0.2.2:8000'; // Android 에뮬
 }

@@ -263,6 +263,10 @@ def _predict_knhanes(bundle: dict, user: dict[str, float]) -> tuple[float, int, 
         row["HE_whr"] = row["HE_wc"] / height_cm
     if "HE_bmi_wc" in features:
         row["HE_bmi_wc"] = row["HE_BMI"] * (row["HE_wc"] / 100)
+    if "F1_family_dm" in features:
+        row["F1_family_dm"] = user.get("family_history_dm", 0.0)
+    if "F2_htn_or_med" in features:
+        row["F2_htn_or_med"] = user.get("htn_or_med", 0.0)
 
     X_df = pd.DataFrame([row])
     X_df = X_df[[f for f in features if f in X_df.columns]]
@@ -292,6 +296,12 @@ def predict_with_model(payload: PredictRequest) -> PredictResponse:
         "waist_cm": payload.waist_cm,
         "sex": float(payload.sex) if payload.sex is not None else None,
         "height_cm": payload.height_cm,
+        "family_history_dm": float(payload.family_history_dm)
+        if payload.family_history_dm is not None
+        else None,
+        "htn_or_med": float(payload.htn_or_med)
+        if payload.htn_or_med is not None
+        else None,
     }
 
     user_provided = {k: float(v) for k, v in raw_input.items() if v is not None}

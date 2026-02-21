@@ -13,6 +13,8 @@ class PredictRequest(BaseModel):
     waist_cm: float | None = Field(None, alias="허리둘레")
     sex: int | None = Field(None, alias="성별")  # 1=남, 2=여 (KNHANES)
     height_cm: float | None = Field(None, alias="키")  # HE_whr 계산용
+    family_history_dm: int | None = Field(None, alias="가족력")  # 0=없음, 1=있음
+    htn_or_med: int | None = Field(None, alias="고혈압/혈압약")  # 0=아니오, 1=예
 
     model_config = ConfigDict(populate_by_name=True)
 

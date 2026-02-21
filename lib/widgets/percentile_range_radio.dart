@@ -10,6 +10,7 @@ class PercentileRangeRadio extends StatelessWidget {
     required this.label,
     required this.ranges,
     this.labelStyle,
+    this.optionTextStyle,
     this.selectedIndex,
     this.onChanged,
   });
@@ -17,6 +18,7 @@ class PercentileRangeRadio extends StatelessWidget {
   final String label;
   final List<(int, int)> ranges;
   final TextStyle? labelStyle;
+  final TextStyle? optionTextStyle;
   final int? selectedIndex;
   final void Function(int index)? onChanged;
 
@@ -51,9 +53,11 @@ class PercentileRangeRadio extends StatelessWidget {
                   ranges[index].$1 == ranges[index].$2
                       ? '${ranges[index].$1}'
                       : '${ranges[index].$1}~${ranges[index].$2}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style:
+                      optionTextStyle ??
+                      Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

@@ -33,7 +33,7 @@ class _AppSettingsDrawerState extends State<AppSettingsDrawer> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '비우면 플랫폼 기본값 사용\n예: http://192.168.0.10:8000',
+              '비우면 config 초기값(없으면 플랫폼 기본값) 사용\n예: http://192.168.0.10:8000',
               style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
                 color: Theme.of(ctx).colorScheme.onSurfaceVariant,
               ),

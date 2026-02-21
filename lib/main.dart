@@ -97,8 +97,14 @@ class _MyAppState extends State<MyApp> {
             ),
           ),
           listTileTheme: ListTileThemeData(
-            titleTextStyle: const TextStyle(fontWeight: FontWeight.bold),
-            subtitleTextStyle: const TextStyle(fontWeight: FontWeight.bold),
+            titleTextStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF212121),
+            ),
+            subtitleTextStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF616161),
+            ),
           ),
           bottomNavigationBarTheme: const BottomNavigationBarThemeData(
             selectedItemColor: Color(0xFF1976D2),
@@ -153,8 +159,14 @@ class _MyAppState extends State<MyApp> {
             ),
           ),
           listTileTheme: ListTileThemeData(
-            titleTextStyle: const TextStyle(fontWeight: FontWeight.bold),
-            subtitleTextStyle: const TextStyle(fontWeight: FontWeight.bold),
+            titleTextStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            subtitleTextStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFBDBDBD),
+            ),
           ),
           bottomNavigationBarTheme: const BottomNavigationBarThemeData(
             selectedItemColor: Color(0xFF64B5F6),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:diabetes_app/models/predict_input_profile.dart';
 import 'package:diabetes_app/utils/app_storage.dart';
 import 'package:diabetes_app/utils/custom_common_util.dart';
 import 'package:diabetes_app/view/address_search_page.dart';
@@ -26,12 +27,52 @@ class SimplePredictPage extends StatefulWidget {
 class _SimplePredictPageState extends State<SimplePredictPage> {
   double _bmi = 0;
   int _heightCm = 170;
+  int _weightKg = 70;
   int _age = 30;
   int _sex = 1;
   double _waistCm = 85;
   int? _sugarIndex;
+  VoidCallback? _unlistenProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    _applyProfile(PredictInputProfile.load());
+    _unlistenProfile = AppStorage.rawStorage.listenKey(
+      PredictInputProfile.storageKey,
+      (_) {
+        if (!mounted) return;
+        setState(() => _applyProfile(PredictInputProfile.load()));
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _unlistenProfile?.call();
+    super.dispose();
+  }
 
   bool get _ok => _bmi > 0 && _waistCm > 0;
+
+  void _applyProfile(PredictInputProfile profile) {
+    _sex = profile.sex;
+    _age = profile.age;
+    _heightCm = profile.heightCm;
+    _weightKg = profile.weightKg;
+    _waistCm = profile.waistCm;
+    _bmi = profile.bmi;
+  }
+
+  Future<void> _saveProfile() {
+    return PredictInputProfile(
+      sex: _sex,
+      age: _age,
+      heightCm: _heightCm,
+      weightKg: _weightKg,
+      waistCm: _waistCm,
+    ).save();
+  }
 
   Future<void> _onPredict() async {
     CustomCommonUtil.showLoadingOverlay(context, message: '당뇨 위험도를 분석 중입니다...');
@@ -109,7 +150,7 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
                         vertical: ConfigUI.sheetButtonHeight - 18,
                       ),
                     child: Text(
-                      '분석 결과',
+                      'AI 분석 결과',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -232,7 +273,10 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
                       ),
                       SexPicker(
                         sex: _sex,
-                        onChanged: (s) => setState(() => _sex = s),
+                        onChanged: (s) {
+                          setState(() => _sex = s);
+                          _saveProfile();
+                        },
                       ),
                     ],
                   ),
@@ -246,7 +290,10 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
                       ),
                       AgePicker(
                         initialAge: _age,
-                        onChanged: (age) => setState(() => _age = age),
+                        onChanged: (age) {
+                          setState(() => _age = age);
+                          _saveProfile();
+                        },
                       ),
                     ],
                   ),
@@ -261,18 +308,25 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
                     style: PredictStyles.sectionLabel(context),
                   ),
                   HeightWeightPicker(
+                    initialHeight: _heightCm,
+                    initialWeight: _weightKg,
                     onChanged: (height, weight, bmi) {
                       setState(() {
                         _bmi = bmi;
                         _heightCm = height;
+                        _weightKg = weight;
                       });
+                      _saveProfile();
                     },
                   ),
                 ],
               ),
               WaistCircumferencePicker(
                 initialCm: _waistCm.round(),
-                onChanged: (cm) => setState(() => _waistCm = cm),
+                onChanged: (cm) {
+                  setState(() => _waistCm = cm);
+                  _saveProfile();
+                },
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -281,6 +335,10 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
                   PercentileRangeRadio(
                     label: '공복 혈당 (mg/dL, 8시간 공복)',
                     ranges: PercentileRangeRadio.bloodGlucoseRanges,
+                    optionTextStyle: (Theme.of(context).textTheme.bodyMedium ??
+                            const TextStyle()).copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                     selectedIndex: _sugarIndex,
                     onChanged: (index) => setState(() => _sugarIndex = index),
                   ),

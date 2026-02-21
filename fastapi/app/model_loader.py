@@ -37,6 +37,8 @@ ALIAS_TO_ENG = {
     "허리둘레": "waist_cm",
     "성별": "sex",
     "키": "height_cm",
+    "가족력": "family_history_dm",
+    "고혈압/혈압약": "htn_or_med",
 }
 
 FEATURE_LABELS = {
@@ -51,6 +53,10 @@ FEATURE_LABELS = {
     "HE_glu": "혈당",
     "HE_whr": "허리/신장비",
     "HE_bmi_wc": "BMI×허리",
+    "family_history_dm": "가족력",
+    "htn_or_med": "고혈압/혈압약",
+    "F1_family_dm": "가족력",
+    "F2_htn_or_med": "고혈압/혈압약",
 }
 
 
@@ -61,6 +67,8 @@ FEATURE_RANGES = {
     "pregnancies": (0.0, 17.0),
     "waist_cm": (50.0, 150.0),
     "height_cm": (80.0, 220.0),
+    "family_history_dm": (0.0, 1.0),
+    "htn_or_med": (0.0, 1.0),
 }
 
 # ---------------------------------------------------------------------------

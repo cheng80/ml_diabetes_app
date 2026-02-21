@@ -27,8 +27,8 @@ class _MainTabPageState extends State<MainTabPage> {
   ];
 
   static const List<String> _titles = [
-    '심플 당뇨 예측',
-    '상세 당뇨 예측',
+    'AI 심플 당뇨예측',
+    'AI 상세 당뇨 예측',
   ];
 
   Future<void> _onRefresh() async {

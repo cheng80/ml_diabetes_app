@@ -10,16 +10,23 @@ enum SnackbarPosition { top, bottom }
 // 커스텀 공용 유틸리티 클래스
 // 위젯 및 공통 기능 관련 유틸리티 함수들을 제공합니다.
 class CustomCommonUtil {
-  /// FastAPI 서버 URL. 사용자 지정 있으면 그대로, 없으면 플랫폼 기본값
+  /// FastAPI 서버 URL 우선순위:
+  /// 1) 사용자 지정(AppStorage)
+  /// 2) config.dart 초기값(AppConfig.fastApiBaseUrl)
+  /// 3) config 초기값이 null이면 플랫폼 기본값
   static String getApiBaseUrlSync() {
     final custom = AppStorage.getApiBaseUrl();
     if (custom != null && custom.trim().isNotEmpty) {
       return custom.trim();
     }
-    if (Platform.isAndroid) {
-      return AppConfig.fastApiBaseUrlAndroid;
+    final initial = AppConfig.fastApiBaseUrl;
+    if (initial != null && initial.trim().isNotEmpty) {
+      return initial.trim();
     }
-    return AppConfig.fastApiBaseUrlIos;
+    if (Platform.isAndroid) {
+      return AppConfig.fastApiBaseUrlAndroidDefault;
+    }
+    return AppConfig.fastApiBaseUrlIosDefault;
   }
 
   // ============================================
