@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.geocoding import geocoding
+from app.geocoding import GeocodingTemporaryError, geocoding
 from app.predictor import predict_with_model
 from app.schemas import GeocodeRequest, GeocodeResponse, PredictRequest, PredictResponse
 
@@ -56,7 +56,13 @@ def predict(payload: PredictRequest) -> PredictResponse:
 @app.post("/geocode", response_model=GeocodeResponse)
 def geocode_address(payload: GeocodeRequest) -> GeocodeResponse:
     """주소 → lat/lng"""
-    result = geocoding(payload.address)
+    try:
+        result = geocoding(payload.address)
+    except GeocodingTemporaryError:
+        raise HTTPException(
+            status_code=503,
+            detail="지오코딩 서비스 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.",
+        ) from None
     if result is None:
         raise HTTPException(status_code=404, detail="주소를 찾을 수 없습니다.")
     return GeocodeResponse(lat=result["lat"], lng=result["lng"])

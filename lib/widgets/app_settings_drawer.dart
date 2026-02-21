@@ -2,14 +2,22 @@ import 'package:diabetes_app/theme/theme_provider.dart';
 import 'package:diabetes_app/utils/app_storage.dart';
 import 'package:diabetes_app/utils/custom_common_util.dart';
 import 'package:diabetes_app/view/address_search_page.dart';
+import 'package:diabetes_app/view/diabetes_info_page.dart';
 import 'package:diabetes_app/view/hospital_search_page.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 // 세팅 드로워 (테마, API주소, 주소찾기, 병원찾기)
-class AppSettingsDrawer extends StatelessWidget {
+class AppSettingsDrawer extends StatefulWidget {
   const AppSettingsDrawer({super.key});
 
+  @override
+  State<AppSettingsDrawer> createState() => _AppSettingsDrawerState();
+}
+
+class _AppSettingsDrawerState extends State<AppSettingsDrawer> {
   static const String _version = '1.0.0';
+  bool _showApiServerTile = false;
 
   void _onApiUrlTap(BuildContext context) {
     final ctrl = TextEditingController(
@@ -108,27 +116,36 @@ class AppSettingsDrawer extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // 헤더: 기어 아이콘 + 세팅
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.settings,
-                    size: 32,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    '세팅',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ) ??
-                        const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ],
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onLongPress: () {
+                // 릴리즈 모드에서는 숨김 메뉴(서버 주소) 토글 비활성화
+                if (kReleaseMode) return;
+                setState(() => _showApiServerTile = !_showApiServerTile);
+              },
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.settings,
+                      size: 32,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      '세팅',
+                      style:
+                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ) ??
+                              const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const Divider(height: 1),
@@ -140,28 +157,30 @@ class AppSettingsDrawer extends StatelessWidget {
               value: context.isDarkMode,
               onChanged: (_) => context.toggleTheme(),
             ),
-
-            // API 서버 주소
-            ListTile(
-              leading: const Icon(Icons.api_outlined),
-              title: const Text('API 서버 주소'),
-              subtitle: Text(
-                CustomCommonUtil.getApiBaseUrlSync(),
-                style: Theme.of(context).textTheme.bodySmall,
-                overflow: TextOverflow.ellipsis,
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _onApiUrlTap(context);
-              },
-            ),
-
             const Divider(height: 1),
+
+            if (_showApiServerTile) ...[
+              // API 서버 주소 (상단 세팅 롱프레스 시 표시)
+              ListTile(
+                leading: const Icon(Icons.api_outlined),
+                title: const Text('API 서버 주소'),
+                subtitle: Text(
+                  CustomCommonUtil.getApiBaseUrlSync(),
+                  style: Theme.of(context).textTheme.bodySmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _onApiUrlTap(context);
+                },
+              ),
+              const Divider(height: 1),
+            ],
 
             // 주소 찾기 메뉴
             ListTile(
               leading: const Icon(Icons.location_on_outlined),
-              title: const Text('주소 찾기 (OpenStreetMap)'),
+              title: const Text('주소 찾기'),
               subtitle: const Text('주소 검색 후 좌표 저장'),
               onTap: () {
                 Navigator.pop(context);
@@ -169,6 +188,22 @@ class AppSettingsDrawer extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const AddressSearchPage(),
+                  ),
+                );
+              },
+            ),
+            const Divider(height: 1),
+
+            ListTile(
+              leading: const Icon(Icons.menu_book_outlined),
+              title: const Text('당뇨 건강정보'),
+              subtitle: const Text('진단 기준, 생활수칙, 응급 안내'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DiabetesInfoPage(),
                   ),
                 );
               },

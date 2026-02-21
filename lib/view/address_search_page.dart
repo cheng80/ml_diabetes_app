@@ -28,9 +28,7 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
   final _addressController = TextEditingController();
   final _addressDetailController = TextEditingController();
 
-  String? _lat;
-  String? _lng;
-  bool _geocodeLoading = false;
+  bool _saveLoading = false;
 
   bool get _canSave => _buildBaseAddress().isNotEmpty;
 
@@ -68,6 +66,7 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
         message: isChannelError
             ? 'WebView를 사용할 수 없습니다. 실제 기기에서 시도해 주세요.'
             : (e.message ?? '주소 검색 중 오류가 발생했습니다.'),
+        position: SnackbarPosition.bottom,
       );
     } catch (e) {
       if (!mounted) return;
@@ -75,6 +74,7 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
         context: context,
         title: '주소 검색 오류',
         message: '주소 검색 중 오류가 발생했습니다.',
+        position: SnackbarPosition.bottom,
       );
     }
   }
@@ -91,70 +91,15 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
   /// 기본주소만 — geocoding API용 (상세주소 제외)
   String _buildBaseAddress() => _addressController.text.trim();
 
-  Future<void> _fetchCoordinates() async {
-    final address = _buildBaseAddress();
-    if (address.isEmpty) {
-      CustomCommonUtil.showErrorSnackbar(
-        context: context,
-        title: '입력 오류',
-        message: '기본주소를 입력해 주세요.',
-      );
-      return;
-    }
-
-    setState(() {
-      _geocodeLoading = true;
-      _lat = null;
-      _lng = null;
-    });
-
-    try {
-      final baseUrl = CustomCommonUtil.getApiBaseUrlSync();
-      final response = await http.post(
-        Uri.parse('$baseUrl/geocode'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'address': address}),
-      );
-
-      if (!mounted) return;
-
-      if (response.statusCode == 404) {
-        CustomCommonUtil.showErrorSnackbar(
-          context: context,
-          title: '좌표 변환 실패',
-          message: '주소를 찾을 수 없습니다.',
-        );
-        return;
-      }
-
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception('서버 오류(${response.statusCode})');
-      }
-
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      setState(() {
-        _lat = data['lat'] as String?;
-        _lng = data['lng'] as String?;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      CustomCommonUtil.showErrorSnackbar(
-        context: context,
-        title: '좌표 변환 오류',
-        message: '서버 연결을 확인해 주세요. $e',
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _geocodeLoading = false);
-      }
-    }
-  }
-
   Future<void> _saveAddress() async {
     final baseAddress = _buildBaseAddress();
     if (baseAddress.isEmpty) return;
 
     final fullAddress = _buildFullAddress();
+
+    setState(() {
+      _saveLoading = true;
+    });
 
     CustomCommonUtil.showLoadingOverlay(context, message: '저장 중...');
 
@@ -174,6 +119,17 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
           context: context,
           title: '저장 실패',
           message: '주소를 찾을 수 없습니다.',
+          position: SnackbarPosition.bottom,
+        );
+        return;
+      }
+
+      if (response.statusCode == 503) {
+        CustomCommonUtil.showErrorSnackbar(
+          context: context,
+          title: '일시적 오류',
+          message: '좌표 변환 서비스가 지연되고 있습니다. 잠시 후 다시 시도해 주세요.',
+          position: SnackbarPosition.bottom,
         );
         return;
       }
@@ -187,35 +143,44 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
       final lng = data['lng'] as String?;
 
       if (lat == null || lng == null) {
+        debugPrint('[AddressSave] status=failed reason=no_coordinates lat=$lat lng=$lng');
         CustomCommonUtil.showErrorSnackbar(
           context: context,
           title: '저장 실패',
           message: '좌표를 받아오지 못했습니다.',
+          position: SnackbarPosition.bottom,
         );
         return;
       }
 
       await AppStorage.saveAddress(fullAddress.isNotEmpty ? fullAddress : baseAddress);
       await AppStorage.saveCoordinates(lat, lng);
+      debugPrint('[AddressSave] status=success lat=$lat lng=$lng');
 
       if (!mounted) return;
       CustomCommonUtil.showSuccessSnackbar(
         context: context,
         title: '저장 완료',
         message: '정상적으로 저장 되었습니다.',
+        position: SnackbarPosition.bottom,
       );
       setState(() {
-        _lat = lat;
-        _lng = lng;
+        // 좌표는 저장만 하고 UI에는 노출하지 않음
       });
     } catch (e) {
+      debugPrint('[AddressSave] status=failed error=$e');
       if (!mounted) return;
       CustomCommonUtil.hideLoadingOverlay(context);
       CustomCommonUtil.showErrorSnackbar(
         context: context,
         title: '저장 실패',
         message: '저장에 실패 했습니다.',
+        position: SnackbarPosition.bottom,
       );
+    } finally {
+      if (mounted) {
+        setState(() => _saveLoading = false);
+      }
     }
   }
 
@@ -279,52 +244,28 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                FilledButton.tonalIcon(
-                  onPressed: _geocodeLoading ? null : _fetchCoordinates,
-                  icon: _geocodeLoading
+                FilledButton.icon(
+                  onPressed: (_canSave && !_saveLoading) ? _saveAddress : null,
+                  icon: _saveLoading
                       ? SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                            color: Colors.white,
                           ),
                         )
-                      : const Icon(Icons.location_on),
-                  label: Text(_geocodeLoading ? '변환 중...' : '좌표 변환'),
+                      : const Icon(Icons.save),
+                  label: Text(_saveLoading ? '주소 저장 중...' : '주소 저장'),
                   style: FilledButton.styleFrom(
+                    backgroundColor: Colors.green.shade600,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.green.shade200,
+                    disabledForegroundColor: Colors.white70,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),
-                const SizedBox(height: 12),
-                FilledButton.icon(
-                  onPressed: _canSave ? _saveAddress : null,
-                  icon: const Icon(Icons.save),
-                  label: const Text('저장하기'),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
-                if (_lat != null && _lng != null) ...[
-                  const SizedBox(height: 16),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '위경도',
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                          const SizedBox(height: 8),
-                          SelectableText('lat: $_lat'),
-                          SelectableText('lng: $_lng'),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                // 좌표는 내부 저장/병원검색용으로만 사용하고 UI에는 노출하지 않음
               ],
             ),
           ),

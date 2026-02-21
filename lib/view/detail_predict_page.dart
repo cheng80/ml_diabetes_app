@@ -82,7 +82,8 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
       } else {
         CustomCommonUtil.showErrorSnackbar(
           context: context, 
-          message: '예측 실패: 상태 코드 ${response.statusCode}'
+          message: '예측 실패: 상태 코드 ${response.statusCode}',
+          position: SnackbarPosition.top,
         );
       }
     } catch (e) {
@@ -91,7 +92,8 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
       CustomCommonUtil.logError(functionName: '_onPredict (Detail)', error: e);
       CustomCommonUtil.showErrorSnackbar(
         context: context, 
-        message: '서버 연결에 실패했습니다. 네트워크 상태를 확인해주세요.'
+        message: '서버 연결에 실패했습니다. 네트워크 상태를 확인해주세요.',
+        position: SnackbarPosition.top,
       );
     }
   }
@@ -154,7 +156,7 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
                         ],
                         const SizedBox(height: 24),
                         const Text(
-                          '이 결과는 통계적 수치에 의한 예측일 뿐이므로\n정확한 결과는 가까운 병원을 방문하시어\n검진하시길 바랍니다.',
+                          '본 앱은 의학적 진단·치료용 앱이 아닙니다.\n예측 결과는 참고용이며,\n정확한 판단은 의료진 상담이 필요합니다.',
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 13, color: Colors.grey),
                         ),
@@ -193,6 +195,7 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
                                 CustomCommonUtil.showErrorSnackbar(
                                   context: context,
                                   message: '저장된 주소가 없습니다. 주소를 먼저 설정해주세요.',
+                                  position: SnackbarPosition.top,
                                 );
                                 Navigator.push(
                                   context,
@@ -230,27 +233,33 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 12,
                 children: [
-                  Text(
-                    '성별',
-                    style: PredictStyles.sectionLabel(context),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: 8,
+                    children: [
+                      Text(
+                        '성별',
+                        style: PredictStyles.sectionLabel(context),
+                      ),
+                      SexPicker(
+                        sex: _sex,
+                        onChanged: (s) => setState(() => _sex = s),
+                      ),
+                    ],
                   ),
-                  SexPicker(
-                    sex: _sex,
-                    onChanged: (s) => setState(() => _sex = s),
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 12,
-                children: [
-                  Text(
-                    '나이',
-                    style: PredictStyles.sectionLabel(context),
-                  ),
-                  AgePicker(
-                    initialAge: _age,
-                    onChanged: (age) => setState(() => _age = age),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: 12,
+                    children: [
+                      Text(
+                        '나이',
+                        style: PredictStyles.sectionLabel(context),
+                      ),
+                      AgePicker(
+                        initialAge: _age,
+                        onChanged: (age) => setState(() => _age = age),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -281,7 +290,7 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
                 spacing: 8,
                 children: [
                   Text(
-                    '혈당 (mg/dL)',
+                    '공복 혈당 (mg/dL, 8시간 공복)',
                     style: PredictStyles.sectionLabel(context),
                   ),
                   TextFormField(
@@ -291,7 +300,7 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
                       FilteringTextInputFormatter.digitsOnly,
                     ],
                     decoration: InputDecoration(
-                      hintText: '최소 $_sugarMin, 최대 $_sugarMax (선택)',
+                      hintText: '최소 $_sugarMin, 최대 $_sugarMax (공복 기준, 선택)',
                       hintStyle: Theme.of(context).textTheme.bodySmall,
                       errorText: _sugarCtrl.text.trim().isNotEmpty && _isSugarOut()
                           ? '범위를 벗어났습니다 ($_sugarMin~$_sugarMax)'
@@ -308,7 +317,7 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
                     onChanged: (_) => setState(() {}),
                   ),
                   Text(
-                    '혈당 미선택 시에도 예측 가능하나, 정확도가 낮아질 수 있습니다.',
+                    '공복 혈당 미선택 시에도 예측 가능하나, 정확도가 낮아질 수 있습니다.',
                     style: (Theme.of(context).textTheme.bodySmall ?? const TextStyle()).copyWith(
                       color: Colors.red.shade400,
                     ),

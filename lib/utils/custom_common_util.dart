@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io' show Platform;
 
+enum SnackbarPosition { top, bottom }
+
 // 커스텀 공용 유틸리티 클래스
 // 위젯 및 공통 기능 관련 유틸리티 함수들을 제공합니다.
 class CustomCommonUtil {
@@ -849,7 +851,19 @@ class CustomCommonUtil {
     Color backgroundColor = Colors.green,
     Color textColor = Colors.white,
     Duration duration = const Duration(seconds: 2),
+    SnackbarPosition position = SnackbarPosition.bottom,
   }) {
+    if (position == SnackbarPosition.bottom) {
+      _showBottomSnackbar(
+        context: context,
+        title: title,
+        message: message,
+        backgroundColor: backgroundColor,
+        textColor: textColor,
+        duration: duration,
+      );
+      return;
+    }
     _showTopBanner(
       context: context,
       title: title,
@@ -876,7 +890,19 @@ class CustomCommonUtil {
     Color backgroundColor = Colors.red,
     Color textColor = Colors.white,
     Duration duration = const Duration(seconds: 2),
+    SnackbarPosition position = SnackbarPosition.bottom,
   }) {
+    if (position == SnackbarPosition.bottom) {
+      _showBottomSnackbar(
+        context: context,
+        title: title,
+        message: message,
+        backgroundColor: backgroundColor,
+        textColor: textColor,
+        duration: duration,
+      );
+      return;
+    }
     _showTopBanner(
       context: context,
       title: title,
@@ -933,6 +959,32 @@ class CustomCommonUtil {
     Future<void>.delayed(duration, () {
       messenger.hideCurrentMaterialBanner();
     });
+  }
+
+  static void _showBottomSnackbar({
+    required BuildContext context,
+    required String title,
+    required String message,
+    required Color backgroundColor,
+    required Color textColor,
+    required Duration duration,
+  }) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..clearMaterialBanners()
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          duration: duration,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          backgroundColor: backgroundColor,
+          content: Text(
+            '$title\n$message',
+            style: TextStyle(color: textColor),
+          ),
+        ),
+      );
   }
 
   // 로딩 오버레이 표시 (다이얼로그처럼 사용)

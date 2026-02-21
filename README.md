@@ -1,27 +1,33 @@
-# 당뇨 위험도 예측 앱
+# GlucoInsight (당뇨 위험도 예측 앱)
 
 Flutter + FastAPI 기반의 당뇨 위험도 예측 모바일 앱입니다.  
 사용자가 간단한 건강 정보를 입력하면 머신러닝 모델이 당뇨 위험 확률을 분석하고,
 필요 시 주변 병원 검색과 길찾기까지 연결해 줍니다.
+예측 결과와 건강정보를 참고용으로 제공합니다.  
+(본 앱은 의학앱이 아니며 건강 정보만을 다룹니다.)
 
 ---
 
 ## 주요 기능
 
 ### 당뇨 위험도 예측
-- **간편 예측**: 나이, 키/몸무게(BMI), 임신횟수, 혈당을 라디오 버튼 구간으로 선택
+- **간편 예측**: 나이, 키/몸무게(BMI), 임신횟수, 공복 혈당을 라디오 버튼 구간으로 선택
 - **상세 예측**: 각 항목을 직접 수치로 입력
-- 혈당 수치는 선택 사항이며, 입력 여부에 따라 서로 다른 모델이 적용됨
+- 공복 혈당은 선택 사항이며, 입력 여부에 따라 서로 다른 모델이 적용됨
 - 예측 결과를 확률, 판정, 차트 이미지로 제공
-- 차트: 예측 확률 + **내 수치 vs 정상 범위** (BMI·허리둘레·혈당 기준선 표시)
+- 차트: 예측 확률 + **내 수치 vs 정상 범위** (BMI·허리둘레·공복 혈당 기준선 표시)
 
 ### 병원 검색 및 길찾기
 - 주소 검색 후 좌표 기반으로 주변 병원 목록 조회 (공공데이터 API)
 - 병원 카드에서 길찾기 버튼을 누르면 카카오맵, 네이버지도, 티맵, Apple Maps 등 설치된 지도 앱으로 바로 연결
 
+### 당뇨 건강정보 페이지
+- 별도 페이지에서 당뇨 진단 기준, 주요 증상, 예방·관리 수칙, 응급 대응 정보를 카드형 UI로 제공
+- 페이지 하단에 출처 링크를 명시하고, 링크 복사 기능 제공
+
 ### 기타
 - 다크 모드 / 라이트 모드 전환
-- API 서버 주소 사용자 지정 (실기기 테스트 대응)
+- API 서버 주소 사용자 지정 (설정 헤더 롱프레스, 디버그 모드에서만 표시)
 - 주소 및 좌표 로컬 저장
 
 ---
@@ -54,7 +60,8 @@ diabetes_app/
 │   │   ├── simple_predict_page.dart       # 간편 예측 화면
 │   │   ├── detail_predict_page.dart       # 상세 예측 화면
 │   │   ├── hospital_search_page.dart      # 병원 검색 + 길찾기
-│   │   └── address_search_page.dart       # 주소 검색 + 좌표 변환
+│   │   ├── address_search_page.dart       # 주소 검색 + 좌표 저장
+│   │   └── diabetes_info_page.dart        # 당뇨 건강정보 화면(출처 포함)
 │   ├── model/
 │   │   └── hospital.dart                  # 병원 데이터 모델
 │   ├── widgets/
@@ -82,14 +89,15 @@ diabetes_app/
 │   │   ├── predictor.py                   # 예측 로직 + 차트 생성
 │   │   ├── model_loader.py                # 모델 로드 + StandardScaler 전처리
 │   │   ├── geocoding.py                   # 주소 → 좌표 변환
-│   │   ├── model_sugar.joblib             # 혈당 포함 모델 (AdaBoost)
-│   │   └── model_no_sugar.joblib          # 혈당 미포함 모델 (RandomForest)
+│   │   ├── model_knhanes_glu.joblib       # KNHANES 혈당 포함 모델 번들
+│   │   ├── model_knhanes_no_glu.joblib    # KNHANES 혈당 미포함 모델 번들
+│   │   ├── model_sugar.joblib             # Pima 혈당 포함 모델
+│   │   └── model_no_sugar.joblib          # Pima 혈당 미포함 모델
 │   ├── requirements.txt
 │   ├── resources/
 │   │   ├── data/                         # KNHANES 원본 데이터(.sav) 및 이용지침서
 │   │   └── submission/                   # 보고서/차트 산출물
 │   ├── APIGUIDE.md                        # API 명세 문서
-│   └── MODEL_FIX_REPORT.md               # 모델 수정 보고서
 │
 ├── android/                               # Android 플랫폼
 ├── ios/                                   # iOS 플랫폼
@@ -130,6 +138,8 @@ flutter run
 | POST | `/predict` | 당뇨 위험도 예측 (확률, 판정, 차트) |
 | POST | `/geocode` | 한글 주소 → 위도/경도 변환 |
 
+`/geocode`는 주소 미일치 시 `404`, 외부 지오코딩 서비스 일시 지연/장애 시 `503`을 반환합니다.
+
 요청/응답 상세는 [APIGUIDE.md](fastapi/APIGUIDE.md)를 참고하세요.
 
 ---
@@ -143,7 +153,7 @@ flutter run
 
 ### 혈당 의존도 조절
 
-혈당만으로 과도하게 판단되는 것을 줄이기 위해 **블렌딩**을 적용합니다.
+공복 혈당만으로 과도하게 판단되는 것을 줄이기 위해 **블렌딩**을 적용합니다.
 
 - 혈당 입력 시: `(혈당 미포함 모델 × 55%) + (혈당 포함 모델 × 45%)`로 확률 혼합
 - 환경변수 `GLUCOSE_BLEND_WEIGHT=0.6`으로 비율 조정 가능 (0.6 = 혈당미포함 60%)

@@ -4,6 +4,7 @@ from __future__ import annotations
 import base64
 import io
 import os
+from pathlib import Path
 
 import matplotlib
 from matplotlib import font_manager as fm
@@ -65,6 +66,27 @@ def _configure_chart_font() -> bool:
     - 서버에 한글 폰트가 있으면 한글 라벨 유지
     - 없으면 영문 라벨로 폴백 (글자 깨짐 방지)
     """
+    # 1) 폰트 파일 경로 직접 로드 (NAS/서버 폰트 미설치 환경 대응)
+    app_dir = Path(__file__).resolve().parent
+    font_path_candidates = [
+        os.environ.get("CHART_FONT_PATH"),
+        str(app_dir.parent / "resources" / "fonts" / "NotoSansKR-Regular.otf"),
+        str(app_dir.parent / "resources" / "fonts" / "NotoSansKR-Regular.ttf"),
+    ]
+    for fp in font_path_candidates:
+        if not fp:
+            continue
+        p = Path(fp)
+        if p.exists():
+            try:
+                fm.fontManager.addfont(str(p))
+                font_name = fm.FontProperties(fname=str(p)).get_name()
+                plt.rcParams["font.family"] = font_name
+                return True
+            except Exception:
+                pass
+
+    # 2) 설치된 시스템 폰트 이름으로 탐색
     preferred = os.environ.get("CHART_FONT_FAMILY")
     candidates = [preferred] if preferred else []
     candidates += [
