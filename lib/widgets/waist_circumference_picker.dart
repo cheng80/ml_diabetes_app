@@ -138,23 +138,23 @@ class _WaistCircumferencePickerState extends State<WaistCircumferencePicker> {
                   ),
                   child: SegmentedButton<bool>(
                     style: ButtonStyle(
-                      padding: MaterialStateProperty.all(
+                      padding: WidgetStatePropertyAll(
                         const EdgeInsets.symmetric(
                           horizontal: ConfigUI.chipPaddingH,
                           vertical: ConfigUI.chipPaddingV + 4,
                         ),
                       ),
-                      textStyle: MaterialStateProperty.all(
+                      textStyle: WidgetStatePropertyAll(
                         Theme.of(context).textTheme.titleSmall,
                       ),
-                      backgroundColor: MaterialStateProperty.resolveWith((states) {
-                        if (states.contains(MaterialState.selected)) {
+                      backgroundColor: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.selected)) {
                           return scheme.primaryContainer;
                         }
                         return scheme.surfaceContainerHighest;
                       }),
-                      foregroundColor: MaterialStateProperty.resolveWith((states) {
-                        if (states.contains(MaterialState.selected)) {
+                      foregroundColor: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.selected)) {
                           return scheme.onPrimaryContainer;
                         }
                         return scheme.onSurface;

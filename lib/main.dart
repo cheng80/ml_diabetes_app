@@ -70,28 +70,28 @@ class _MyAppState extends State<MyApp> {
           useMaterial3: true,
           textButtonTheme: TextButtonThemeData(
             style: ButtonStyle(
-              textStyle: MaterialStateProperty.all(
+              textStyle: WidgetStatePropertyAll(
                 const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ),
           filledButtonTheme: FilledButtonThemeData(
             style: ButtonStyle(
-              textStyle: MaterialStateProperty.all(
+              textStyle: WidgetStatePropertyAll(
                 const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ),
           outlinedButtonTheme: OutlinedButtonThemeData(
             style: ButtonStyle(
-              textStyle: MaterialStateProperty.all(
+              textStyle: WidgetStatePropertyAll(
                 const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ButtonStyle(
-              textStyle: MaterialStateProperty.all(
+              textStyle: WidgetStatePropertyAll(
                 const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
@@ -136,28 +136,28 @@ class _MyAppState extends State<MyApp> {
           useMaterial3: true,
           textButtonTheme: TextButtonThemeData(
             style: ButtonStyle(
-              textStyle: MaterialStateProperty.all(
+              textStyle: WidgetStatePropertyAll(
                 const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ),
           filledButtonTheme: FilledButtonThemeData(
             style: ButtonStyle(
-              textStyle: MaterialStateProperty.all(
+              textStyle: WidgetStatePropertyAll(
                 const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ),
           outlinedButtonTheme: OutlinedButtonThemeData(
             style: ButtonStyle(
-              textStyle: MaterialStateProperty.all(
+              textStyle: WidgetStatePropertyAll(
                 const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ButtonStyle(
-              textStyle: MaterialStateProperty.all(
+              textStyle: WidgetStatePropertyAll(
                 const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),

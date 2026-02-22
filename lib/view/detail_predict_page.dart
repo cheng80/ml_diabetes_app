@@ -478,22 +478,22 @@ class _RiskChoice extends StatelessWidget {
           showSelectedIcon: false,
           expandedInsets: EdgeInsets.zero,
           style: ButtonStyle(
-            textStyle: MaterialStateProperty.all(
+            textStyle: WidgetStatePropertyAll(
               (Theme.of(context).textTheme.bodyMedium ?? const TextStyle())
                   .copyWith(fontWeight: FontWeight.bold),
             ),
-            minimumSize: MaterialStateProperty.all(const Size(0, 44)),
-            padding: MaterialStateProperty.all(
+            minimumSize: WidgetStatePropertyAll(const Size(0, 44)),
+            padding: WidgetStatePropertyAll(
               const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
             ),
-            backgroundColor: MaterialStateProperty.resolveWith((states) {
-              if (states.contains(MaterialState.selected)) {
+            backgroundColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) {
                 return scheme.primaryContainer;
               }
               return scheme.surfaceContainerHighest;
             }),
-            foregroundColor: MaterialStateProperty.resolveWith((states) {
-              if (states.contains(MaterialState.selected)) {
+            foregroundColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) {
                 return scheme.onPrimaryContainer;
               }
               return scheme.onSurface;

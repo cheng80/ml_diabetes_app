@@ -17,17 +17,17 @@ class SexPicker extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return SegmentedButton<int>(
       style: ButtonStyle(
-        textStyle: MaterialStateProperty.all(
+        textStyle: WidgetStatePropertyAll(
           PredictStyles.cardValue(context).copyWith(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return scheme.primaryContainer;
           }
           return scheme.surfaceContainerHighest;
         }),
-        foregroundColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        foregroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return scheme.onPrimaryContainer;
           }
           return scheme.onSurface;
