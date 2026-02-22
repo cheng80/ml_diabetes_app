@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:charset/charset.dart';
 import 'package:diabetes_app/config.dart';
-import 'package:diabetes_app/model/hospital.dart';
+import 'package:diabetes_app/models/hospital.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
