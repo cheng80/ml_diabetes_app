@@ -208,8 +208,11 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
       appBar: AppBar(
         title: const Text('주소 찾기'),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: SafeArea(
+          child: SingleChildScrollView(
           padding: const EdgeInsets.all(ConfigUI.screenPaddingH),
           child: Form(
             key: _formKey,
@@ -287,6 +290,7 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
               ],
             ),
           ),
+        ),
         ),
       ),
     );

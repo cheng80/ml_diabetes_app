@@ -252,7 +252,10 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -360,6 +363,7 @@ class _SimplePredictPageState extends State<SimplePredictPage> {
             ],
           ),
         ),
+      ),
     );
   }
 }

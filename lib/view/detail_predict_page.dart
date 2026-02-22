@@ -283,8 +283,11 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: SingleChildScrollView(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: SafeArea(
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -446,6 +449,7 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:diabetes_app/models/predict_input_profile.dart';
 import 'package:diabetes_app/view/detail_predict_page.dart';
 import 'package:diabetes_app/view/simple_predict_page.dart';
 import 'package:diabetes_app/widgets/app_settings_drawer.dart';
@@ -50,6 +51,7 @@ class _MainTabPageState extends State<MainTabPage> {
       ),
     );
     if (ok == true && mounted) {
+      await PredictInputProfile.defaults().save();
       setState(() => _resetCnt++);
     }
   }
