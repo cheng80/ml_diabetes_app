@@ -23,6 +23,12 @@ class PredictResponse(BaseModel):
     """예측 결과"""
     prediction: int
     probability: float
+    # 보정 전 순수 ML 확률(운영 모니터링용)
+    # - 가드레일로 표시 확률(probability)을 조정해도, 모델 원본 출력은 추적 가능해야 한다.
+    ml_probability: float
+    # 혈당 임상 기준 가드레일이 이번 요청에서 발동했는지 여부
+    # - True면 probability가 안전 보정 로직의 영향을 받았을 가능성이 있다.
+    guardrail_applied: bool
     label: str
     input: dict[str, float]
     used_model: str

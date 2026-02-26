@@ -74,6 +74,13 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
   bool get _useF1InModel => !_hasSugarInput;
   bool get _useF2InModel => true;
 
+  String _formatProbabilityPercent(double probabilityRate) {
+    final percent = probabilityRate * 100;
+    if (percent < 0.1) return '<0.1%';
+    if (percent > 99.9) return '>99.9%';
+    return '${percent.toStringAsFixed(1)}%';
+  }
+
   void _applyProfile(PredictInputProfile profile) {
     _sex = profile.sex;
     _age = profile.age;
@@ -152,7 +159,8 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
 
   void _showResultDialog(Map<String, dynamic> data) {
     final label = data['label'] as String;
-    final probability = (data['probability'] as double) * 100;
+    final probabilityRate = data['probability'] as double;
+    final probabilityText = _formatProbabilityPercent(probabilityRate);
     final chartBase64 = data['chart_image_base64'] as String?;
 
     showModalBottomSheet(
@@ -204,7 +212,7 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '당뇨 가능성: ${probability.toStringAsFixed(1)}%',
+                          '당뇨 가능성: $probabilityText',
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontSize: 16),
                         ),

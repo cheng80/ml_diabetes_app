@@ -115,6 +115,16 @@ def _txt(ko: str, en: str) -> str:
     return ko if USE_KOREAN_CHART_TEXT else en
 
 
+def _format_percent_label(rate: float) -> str:
+    """0%/100% 극단값 오해 방지를 위한 표시용 퍼센트 포맷"""
+    percent = max(0.0, min(1.0, rate)) * 100
+    if percent < 0.1:
+        return "<0.1%"
+    if percent > 99.9:
+        return ">99.9%"
+    return f"{percent:.1f}%"
+
+
 def _apply_optional_feature_policy(
     user_provided: dict[str, float],
     *,
@@ -147,6 +157,35 @@ REF_WAIST_M = 90  # 남성 허리둘레 기준 (cm)
 REF_WAIST_F = 80  # 여성 허리둘레 기준 (cm)
 REF_GLU_NORMAL = 100
 REF_GLU_DIABETES = 126
+REF_GLU_HIGH_RISK = 140
+
+
+def _apply_glucose_guardrail(probability: float, user_input: dict[str, float]) -> tuple[float, str | None]:
+    """
+    공복혈당 임상 기준 기반 안전 보정.
+    - 가드레일 발동 시 표시 확률을 하한선(floor)까지 올려, 차트/문구 불일치를 줄인다.
+    - 원본 ML 추정은 유지하되 사용자 표시값은 보정값을 사용한다.
+    """
+    glucose = user_input.get("glucose")
+    if glucose is None:
+        return probability, None
+
+    if glucose >= REF_GLU_HIGH_RISK:
+        floor = 0.85
+        reason = _txt(
+            "공복혈당 140mg/dL 이상 안전 보정 적용",
+            "Safety guardrail applied for fasting glucose >= 140 mg/dL",
+        )
+    elif glucose >= REF_GLU_DIABETES:
+        floor = 0.70
+        reason = _txt(
+            "공복혈당 126mg/dL 이상 안전 보정 적용",
+            "Safety guardrail applied for fasting glucose >= 126 mg/dL",
+        )
+    else:
+        return probability, None
+
+    return max(probability, floor), reason
 
 
 def _input_vs_reference_chart(ax, input_values: dict[str, float]) -> None:
@@ -245,7 +284,7 @@ def create_chart_base64(
         ax1.text(
             bar.get_x() + bar.get_width() / 2,
             value + 0.02,
-            f"{value * 100:.1f}%",
+            _format_percent_label(value),
             ha="center",
             va="bottom",
             fontsize=11,
@@ -412,7 +451,23 @@ def predict_with_model(payload: PredictRequest) -> PredictResponse:
         prediction = int(probability >= 0.5)
         used_model_name = "AdaBoost (혈당 포함)" if has_glucose else "RandomForest (혈당 미포함)"
 
+    # 운영 모니터링을 위해 "모델 원본 확률"을 먼저 보존한다.
+    # - ml_probability: 순수 ML 출력(보정 전)
+    # - probability: 사용자에게 표시되는 최종 확률(보정 후)
+    # 이렇게 분리해두면, 나중에 "모델이 낮게 본 케이스를 가드레일이 얼마나 올렸는지"
+    # 정량적으로 분석할 수 있다.
+    ml_probability = probability
+
+    # 안전 보정(가드레일): 고혈당 구간에서 최종 표시 확률을 보수적으로 상향.
+    # 목적:
+    # 1) 임상 기준(공복혈당 126/140)을 UX에 반영
+    # 2) "차트는 저위험인데 문구만 경고" 같은 불일치 완화
+    probability, guardrail_reason = _apply_glucose_guardrail(probability, user_provided)
+    guardrail_applied = guardrail_reason is not None
+    prediction = int(probability >= 0.5)
     label = "당뇨 위험" if prediction == 1 else "정상 범위"
+    if guardrail_reason:
+        used_model_name = f"{used_model_name} + 혈당 가드레일"
 
     chart_image_base64: str | None = None
     try:
@@ -426,6 +481,8 @@ def predict_with_model(payload: PredictRequest) -> PredictResponse:
     return PredictResponse(
         prediction=prediction,
         probability=round(probability, 4),
+        ml_probability=round(ml_probability, 4),
+        guardrail_applied=guardrail_applied,
         label=label,
         input=user_provided,
         used_model=used_model_name,
