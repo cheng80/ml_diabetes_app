@@ -1,4 +1,4 @@
-# in_app_review 구현 가이드
+# GlucoInsight in_app_review 구현 가이드
 
 > [pub.dev/packages/in_app_review](https://pub.dev/packages/in_app_review) 공식 지침 및 테스트 유의사항 요약
 
@@ -11,6 +11,12 @@
 ---
 
 ## 2. API 사용 지침
+
+### 현재 프로젝트 적용값 (GlucoInsight)
+
+- iOS Apple ID: `6759739212`
+- 코드 반영 위치: `lib/config.dart`의 `AppConfig.appStoreId`
+- 호출 위치: `lib/utils/in_app_review_helper.dart`의 `openStoreListing()`
 
 ### `requestReview()` — 인앱 리뷰 팝업
 
@@ -32,7 +38,7 @@ if (await inAppReview.isAvailable()) {
 - **Windows**: `microsoftStoreId` 필수
 
 ```dart
-inAppReview.openStoreListing(appStoreId: '앱스토어ID');
+inAppReview.openStoreListing(appStoreId: '6759739212');
 ```
 
 ---
@@ -78,15 +84,27 @@ inAppReview.openStoreListing(appStoreId: '앱스토어ID');
 
 ---
 
-## 5. TagDo 적용 방안
+## 5. GlucoInsight 적용 방안
 
 | 기능 | 호출 시점 | 메서드 |
 |------|-----------|--------|
-| 인앱 리뷰 팝업 | 할 일 N개 완료 후, 또는 앱 사용 며칠 후 | `requestReview()` |
-| 평점 남기기 버튼 | Drawer/설정 메뉴 | `openStoreListing(appStoreId: '...')` |
+| 인앱 리뷰 팝업 | 예측 완료 N회 이상 시 자동 노출 | `requestReview()` |
+| 평점 남기기 버튼 | Drawer/설정 메뉴 | `openStoreListing(appStoreId: '6759739212')` |
 
-- `requestReview()`: GetStorage에 완료 횟수·접속일 저장 후, 조건 만족 시 자동 호출
+- `requestReview()`: GetStorage에 예측 완료 횟수 저장 후, 임계값 도달 시 자동 호출
 - `openStoreListing()`: Drawer에 ListTile 추가, 탭 시 호출
+
+### 현재 코드 스니펫
+
+```dart
+// lib/config.dart
+static const String appStoreId = '6759739212';
+
+// lib/utils/in_app_review_helper.dart
+await _inAppReview.openStoreListing(
+  appStoreId: AppConfig.appStoreId,
+);
+```
 
 ---
 

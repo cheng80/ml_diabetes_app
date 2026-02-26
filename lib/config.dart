@@ -23,8 +23,7 @@ class AppConfig {
 
   // ─── 인앱 리뷰 ───────────────────────────────
   /// Apple App Store ID (App Store Connect > General > App Information > Apple ID)
-  /// 출시 후 실제 ID로 교체 필요
-  static const String appStoreId = ''; // TODO: 실제 App Store ID 입력
+  static const String appStoreId = '6759739212';
 
   /// 인앱 리뷰 요청 기준 예측 완료 횟수
   static const int reviewPromptThreshold = 3;
