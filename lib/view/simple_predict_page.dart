@@ -1,19 +1,19 @@
 import 'dart:convert';
 
-import 'package:diabetes_app/models/predict_input_profile.dart';
-import 'package:diabetes_app/utils/app_storage.dart';
-import 'package:diabetes_app/utils/custom_common_util.dart';
-import 'package:diabetes_app/utils/in_app_review_helper.dart';
-import 'package:diabetes_app/view/address_search_page.dart';
-import 'package:diabetes_app/view/hospital_search_page.dart';
-import 'package:diabetes_app/widgets/age_picker.dart';
-import 'package:diabetes_app/widgets/height_weight_picker.dart';
-import 'package:diabetes_app/widgets/percentile_range_radio.dart';
-import 'package:diabetes_app/widgets/sex_picker.dart';
-import 'package:diabetes_app/constants/config_ui.dart';
-import 'package:diabetes_app/constants/predict_styles.dart';
-import 'package:diabetes_app/theme/app_theme_colors.dart';
-import 'package:diabetes_app/widgets/waist_circumference_picker.dart';
+import 'package:glucoinsight/models/predict_input_profile.dart';
+import 'package:glucoinsight/utils/app_storage.dart';
+import 'package:glucoinsight/utils/custom_common_util.dart';
+import 'package:glucoinsight/utils/in_app_review_helper.dart';
+import 'package:glucoinsight/view/address_search_page.dart';
+import 'package:glucoinsight/view/hospital_search_page.dart';
+import 'package:glucoinsight/widgets/age_picker.dart';
+import 'package:glucoinsight/widgets/height_weight_picker.dart';
+import 'package:glucoinsight/widgets/percentile_range_radio.dart';
+import 'package:glucoinsight/widgets/sex_picker.dart';
+import 'package:glucoinsight/constants/config_ui.dart';
+import 'package:glucoinsight/constants/predict_styles.dart';
+import 'package:glucoinsight/theme/app_theme_colors.dart';
+import 'package:glucoinsight/widgets/waist_circumference_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 

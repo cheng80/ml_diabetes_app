@@ -1,7 +1,7 @@
-import 'package:diabetes_app/models/predict_input_profile.dart';
-import 'package:diabetes_app/view/detail_predict_page.dart';
-import 'package:diabetes_app/view/simple_predict_page.dart';
-import 'package:diabetes_app/widgets/app_settings_drawer.dart';
+import 'package:glucoinsight/models/predict_input_profile.dart';
+import 'package:glucoinsight/view/detail_predict_page.dart';
+import 'package:glucoinsight/view/simple_predict_page.dart';
+import 'package:glucoinsight/widgets/app_settings_drawer.dart';
 import 'package:flutter/material.dart';
 
 // 심플/상세 탭 전환 + 초기화 버튼

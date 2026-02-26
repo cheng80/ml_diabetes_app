@@ -1,6 +1,6 @@
-import 'package:diabetes_app/config.dart';
-import 'package:diabetes_app/constants/config_ui.dart';
-import 'package:diabetes_app/utils/app_storage.dart';
+import 'package:glucoinsight/config.dart';
+import 'package:glucoinsight/constants/config_ui.dart';
+import 'package:glucoinsight/utils/app_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io' show Platform;

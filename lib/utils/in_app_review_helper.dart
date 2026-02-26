@@ -1,5 +1,5 @@
-import 'package:diabetes_app/config.dart';
-import 'package:diabetes_app/utils/app_storage.dart';
+import 'package:glucoinsight/config.dart';
+import 'package:glucoinsight/utils/app_storage.dart';
 import 'package:in_app_review/in_app_review.dart';
 
 /// 인앱 리뷰 요청 및 스토어 리스팅 오픈 헬퍼

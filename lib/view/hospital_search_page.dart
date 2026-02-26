@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:charset/charset.dart';
-import 'package:diabetes_app/config.dart';
-import 'package:diabetes_app/models/hospital.dart';
+import 'package:glucoinsight/config.dart';
+import 'package:glucoinsight/models/hospital.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
@@ -27,6 +27,7 @@ class HospitalSearchPage extends StatefulWidget {
 class _HospitalSearchPageState extends State<HospitalSearchPage> {
   final ScrollController _scrollController = ScrollController();
   final List<Hospital> _hospitals = [];
+  static const int _pageSize = 10;
   int _currentPage = 1;
   bool _isLoading = false;
   bool _hasMoreData = true;
@@ -96,6 +97,10 @@ class _HospitalSearchPageState extends State<HospitalSearchPage> {
           }
         }
         final items = document.findAllElements('item');
+        final totalCountElements = document.findAllElements('totalCount');
+        final totalCountText =
+            totalCountElements.isNotEmpty ? totalCountElements.first.innerText : null;
+        final totalCount = int.tryParse(totalCountText ?? '');
 
         if (items.isEmpty) {
           setState(() => _hasMoreData = false);
@@ -115,6 +120,13 @@ class _HospitalSearchPageState extends State<HospitalSearchPage> {
           setState(() {
             _hospitals.addAll(newHospitals);
             _currentPage++;
+            // 마지막 페이지 판단:
+            // 1) totalCount가 있으면 누적 개수로 판단
+            // 2) 없으면 pageSize 미만 응답을 마지막 페이지로 간주
+            final reachedEndByTotal =
+                totalCount != null && _hospitals.length >= totalCount;
+            final reachedEndByPageSize = newHospitals.length < _pageSize;
+            _hasMoreData = !(reachedEndByTotal || reachedEndByPageSize);
           });
         }
       }
@@ -228,7 +240,7 @@ class _HospitalSearchPageState extends State<HospitalSearchPage> {
               ? const Center(child: Text('주변에 검색된 병원이 없습니다.'))
               : ListView.builder(
                   controller: _scrollController,
-                  itemCount: _hospitals.length + (_hasMoreData ? 1 : 0),
+                  itemCount: _hospitals.length + (_isLoading ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index == _hospitals.length) {
                       return const Padding(

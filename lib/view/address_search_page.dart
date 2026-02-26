@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:diabetes_app/constants/config_ui.dart';
-import 'package:diabetes_app/utils/app_storage.dart';
-import 'package:diabetes_app/utils/custom_common_util.dart';
+import 'package:glucoinsight/constants/config_ui.dart';
+import 'package:glucoinsight/utils/app_storage.dart';
+import 'package:glucoinsight/utils/custom_common_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;

@@ -1,6 +1,6 @@
-import 'package:diabetes_app/constants/predict_styles.dart';
+import 'package:glucoinsight/constants/predict_styles.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:diabetes_app/constants/config_ui.dart';
+import 'package:glucoinsight/constants/config_ui.dart';
 import 'package:flutter/material.dart';
 
 // 나이 19~120 (KNHANES 만19세 이상), 백십일 3휠

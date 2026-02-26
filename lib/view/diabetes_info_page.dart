@@ -1,4 +1,4 @@
-import 'package:diabetes_app/constants/config_ui.dart';
+import 'package:glucoinsight/constants/config_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

@@ -1,4 +1,4 @@
-import 'package:diabetes_app/constants/predict_styles.dart';
+import 'package:glucoinsight/constants/predict_styles.dart';
 import 'package:flutter/material.dart';
 
 /// 성별 선택 (KNHANES: 1=남, 2=여)

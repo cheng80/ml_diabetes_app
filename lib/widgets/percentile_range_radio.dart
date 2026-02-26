@@ -1,6 +1,6 @@
-import 'package:diabetes_app/constants/diabetes_predict_mapping.dart';
-import 'package:diabetes_app/constants/predict_styles.dart';
-import 'package:diabetes_app/constants/config_ui.dart';
+import 'package:glucoinsight/constants/diabetes_predict_mapping.dart';
+import 'package:glucoinsight/constants/predict_styles.dart';
+import 'package:glucoinsight/constants/config_ui.dart';
 import 'package:flutter/material.dart';
 
 // 분위 구간 라디오 (인덱스 0~3 반환, BloodGlucoseMapping/PregnancyMapping 참고)
