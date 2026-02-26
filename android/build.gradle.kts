@@ -42,6 +42,20 @@ subprojects {
     plugins.withId("com.android.application") { setFallbackNamespaceIfMissing() }
 }
 
+// Upgrade Java 1.8 → 11 for specific third-party plugins that still declare Java 1.8,
+// suppressing "source/target value 8 is obsolete" warnings.
+val java8Modules = setOf("geocoding_android", "flutter_inappwebview_android")
+subprojects {
+    if (name in java8Modules) {
+        afterEvaluate {
+            extensions.findByType<com.android.build.gradle.BaseExtension>()?.compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_11
+                targetCompatibility = JavaVersion.VERSION_11
+            }
+        }
+    }
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }

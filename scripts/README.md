@@ -3,7 +3,8 @@
 ## 문서 목록
 
 - **[KPOSTAL_MIGRATION.md](KPOSTAL_MIGRATION.md)** — kpostal 패키지 적용 가이드 (remedi_kopo → kpostal 교체, 다른 프로젝트 적용용)
-- **patch_webview_for_android.sh** — webview_flutter_android AGP8 호환 패치 (remedi_kopo 사용 시)
+- **[KPOSTAL_JAVA8_FIX.md](KPOSTAL_JAVA8_FIX.md)** — kpostal 사용 시 Java 8 경고 해결 가이드 (geocoding_android / flutter_inappwebview_android)
+- **patch_webview_for_android.sh** — webview_flutter_android AGP8 호환 패치 (remedi_kopo 사용 시, kpostal 전환 후 불필요)
 
 ---
 

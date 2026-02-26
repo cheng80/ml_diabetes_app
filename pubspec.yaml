@@ -51,7 +51,7 @@ dependencies:
   kpostal: ^1.1.0
 
   # 외부 지도 앱 연동 (길찾기)
-  map_launcher: ^3.5.0
+  map_launcher: ^4.4.3
   # SVG 이미지 표시
   flutter_svg: ^2.0.17
 
@@ -75,6 +75,25 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  image_path: assets/icon.png
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: assets/icon.png
+
+flutter_native_splash:
+  color: "#ffffff"
+  image: assets/splash.png
+  android: true
+  ios: true
+  web: false
+  android_12:
+    image: assets/splash_android12.png
+    color: "#ffffff"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -86,6 +105,8 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+    - assets/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
