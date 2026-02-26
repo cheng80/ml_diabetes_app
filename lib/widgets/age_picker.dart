@@ -69,9 +69,11 @@ class _AgePickerState extends State<AgePicker> {
           final rawValue = h * 100 + t * 10 + o;
           final displayAge = rawValue.clamp(_minAge, _maxAge);
           final scheme = Theme.of(context).colorScheme;
+          final mq = MediaQuery.of(context);
+          final sheetHeight = (mq.size.height * 0.3).clamp(250.0, 400.0);
 
           return Container(
-            height: 250,
+            height: sheetHeight + mq.viewPadding.bottom,
             decoration: BoxDecoration(
               color: scheme.surface,
               borderRadius: const BorderRadius.vertical(
@@ -168,6 +170,7 @@ class _AgePickerState extends State<AgePicker> {
                     ),
                   ),
                 ),
+                SizedBox(height: mq.viewPadding.bottom),
               ],
             ),
           );

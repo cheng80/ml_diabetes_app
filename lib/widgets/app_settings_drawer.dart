@@ -2,6 +2,7 @@ import 'package:diabetes_app/constants/config_ui.dart';
 import 'package:diabetes_app/theme/theme_provider.dart';
 import 'package:diabetes_app/utils/app_storage.dart';
 import 'package:diabetes_app/utils/custom_common_util.dart';
+import 'package:diabetes_app/utils/in_app_review_helper.dart';
 import 'package:diabetes_app/view/address_search_page.dart';
 import 'package:diabetes_app/view/diabetes_info_page.dart';
 import 'package:diabetes_app/view/hospital_search_page.dart';
@@ -220,6 +221,17 @@ class _AppSettingsDrawerState extends State<AppSettingsDrawer> {
               onTap: () {
                 Navigator.pop(context);
                 _onHospitalSearchTap(context);
+              },
+            ),
+            const Divider(height: 1),
+
+            ListTile(
+              leading: const Icon(Icons.star_outline),
+              title: const Text('평점 남기기'),
+              subtitle: const Text('스토어에서 앱 평가하기'),
+              onTap: () {
+                Navigator.pop(context);
+                InAppReviewHelper.openStoreListing();
               },
             ),
 

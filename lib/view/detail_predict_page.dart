@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:diabetes_app/models/predict_input_profile.dart';
 import 'package:diabetes_app/utils/app_storage.dart';
 import 'package:diabetes_app/utils/custom_common_util.dart';
+import 'package:diabetes_app/utils/in_app_review_helper.dart';
 import 'package:diabetes_app/view/address_search_page.dart';
 import 'package:diabetes_app/view/hospital_search_page.dart';
 import 'package:diabetes_app/widgets/age_picker.dart';
@@ -129,6 +130,7 @@ class _DetailPredictPageState extends State<DetailPredictPage> {
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
         _showResultDialog(data);
+        InAppReviewHelper.requestReviewIfEligible();
       } else {
         CustomCommonUtil.showErrorSnackbar(
           context: context,

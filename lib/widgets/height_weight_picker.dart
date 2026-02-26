@@ -65,9 +65,11 @@ class _HeightWeightPickerState extends State<HeightWeightPicker> {
       context: context,
       builder: (context) {
         final scheme = Theme.of(context).colorScheme;
+        final mq = MediaQuery.of(context);
+        final sheetHeight = (mq.size.height * 0.3).clamp(250.0, 400.0);
         return StatefulBuilder(
           builder: (context, setModalState) => Container(
-            height: 250,
+            height: sheetHeight + mq.viewPadding.bottom,
             decoration: BoxDecoration(
               color: scheme.surface,
               borderRadius: const BorderRadius.vertical(
@@ -126,6 +128,7 @@ class _HeightWeightPickerState extends State<HeightWeightPicker> {
                     ),
                   ),
                 ),
+                SizedBox(height: mq.viewPadding.bottom),
               ],
             ),
           ),
@@ -140,9 +143,11 @@ class _HeightWeightPickerState extends State<HeightWeightPicker> {
       context: context,
       builder: (context) {
         final scheme = Theme.of(context).colorScheme;
+        final mq = MediaQuery.of(context);
+        final sheetHeight = (mq.size.height * 0.3).clamp(250.0, 400.0);
         return StatefulBuilder(
           builder: (context, setModalState) => Container(
-            height: 250,
+            height: sheetHeight + mq.viewPadding.bottom,
             decoration: BoxDecoration(
               color: scheme.surface,
               borderRadius: const BorderRadius.vertical(
@@ -201,6 +206,7 @@ class _HeightWeightPickerState extends State<HeightWeightPicker> {
                     ),
                   ),
                 ),
+                SizedBox(height: mq.viewPadding.bottom),
               ],
             ),
           ),

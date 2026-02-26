@@ -68,6 +68,25 @@ class AppStorage {
     await _storage.write(_keyLng, lng);
   }
 
+  // ─── 인앱 리뷰 ──────────────────────────────
+  static const String _keyPredictCount = 'predict_count';
+  static const String _keyReviewRequested = 'review_requested';
+
+  /// 예측 완료 누적 횟수
+  static int getPredictCount() => _storage.read<int>(_keyPredictCount) ?? 0;
+
+  /// 예측 완료 횟수 1 증가
+  static Future<void> incrementPredictCount() =>
+      _storage.write(_keyPredictCount, getPredictCount() + 1);
+
+  /// 인앱 리뷰 요청 이력 여부
+  static bool isReviewRequested() =>
+      _storage.read<bool>(_keyReviewRequested) ?? false;
+
+  /// 인앱 리뷰 요청 완료 기록
+  static Future<void> markReviewRequested() =>
+      _storage.write(_keyReviewRequested, true);
+
   // ─── 스토어 리셋 (테스트/디버그용) ─────────────────
   /// 전체 저장소 초기화
   static Future<void> clearAll() => _storage.erase();

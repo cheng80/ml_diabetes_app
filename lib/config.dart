@@ -20,4 +20,12 @@ class AppConfig {
   /// config.fastApiBaseUrl 이 null일 때의 플랫폼 기본값
   static const String fastApiBaseUrlIosDefault = 'http://127.0.0.1:8000'; // iOS/Windows/macOS
   static const String fastApiBaseUrlAndroidDefault = 'http://10.0.2.2:8000'; // Android 에뮬
+
+  // ─── 인앱 리뷰 ───────────────────────────────
+  /// Apple App Store ID (App Store Connect > General > App Information > Apple ID)
+  /// 출시 후 실제 ID로 교체 필요
+  static const String appStoreId = ''; // TODO: 실제 App Store ID 입력
+
+  /// 인앱 리뷰 요청 기준 예측 완료 횟수
+  static const int reviewPromptThreshold = 3;
 }

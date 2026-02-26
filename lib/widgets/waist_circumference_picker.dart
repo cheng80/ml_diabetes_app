@@ -89,8 +89,10 @@ class _WaistCircumferencePickerState extends State<WaistCircumferencePicker> {
           }
 
           final scheme = Theme.of(context).colorScheme;
+          final mq = MediaQuery.of(context);
+          final sheetHeight = (mq.size.height * 0.35).clamp(300.0, 450.0);
           return Container(
-            height: 300,
+            height: sheetHeight + mq.viewPadding.bottom,
             decoration: BoxDecoration(
               color: scheme.surface,
               borderRadius: const BorderRadius.vertical(
@@ -194,6 +196,7 @@ class _WaistCircumferencePickerState extends State<WaistCircumferencePicker> {
                     ),
                   ),
                 ),
+                SizedBox(height: mq.viewPadding.bottom),
               ],
             ),
           );
