@@ -31,9 +31,9 @@
 현재 레포에는 GlucoInsight 전용 웹 정책 페이지가 아직 보이지 않습니다.  
 스토어 제출 전 아래 URL을 **실제 생성 후 치환**하세요.
 
-- 개인정보처리방침: `https://<도메인>/glucoinsight/privacy.html`
-- 이용약관(선택): `https://<도메인>/glucoinsight/terms.html`
-- 마케팅/소개 페이지(선택): `https://<도메인>/glucoinsight/index.html`
+- 개인정보처리방침: `https://cheng80.myqnapcloud.com/glucoinsight/privacy.html`
+- 이용약관(선택): `https://cheng80.myqnapcloud.com/glucoinsight/terms.html`
+- 마케팅/소개 페이지(선택): `https://cheng80.myqnapcloud.com/glucoinsight/index.html`
 
 ---
 
@@ -169,15 +169,15 @@ Data safety 초안(검토용):
 - Subtitle (en): `Diabetes Risk Estimator` (<=30)
 - Primary Category: `Medical` 또는 `Health & Fitness`
 - Age Rating: 성인 건강정보/예측앱 기준 설문 응답
-- Privacy Policy URL: `https://<도메인>/glucoinsight/privacy.html` (실 URL로 교체 필요)
+- Privacy Policy URL: `https://cheng80.myqnapcloud.com/glucoinsight/privacy.html`
 
 ---
 
 ## B. Version metadata
 
 ### Promotional Text (선택, <=170)
-- ko: `성인 당뇨 위험도를 간편하게 확인하고, 결과에 맞춰 병원 찾기와 건강정보까지 한 번에 확인하세요.`
-- en: `Estimate adult diabetes risk quickly and get nearby hospital search plus practical health guidance.`
+- ko: `간단한 입력으로 당뇨 위험도를 빠르게 확인하고, 주변 병원 찾기와 건강 가이드까지 한 번에 확인하세요.`
+- en: `Quickly estimate diabetes risk with simple inputs, then find nearby hospitals and practical health guidance in one place.`
 
 ### Description (필수, <=4000)
 
@@ -226,10 +226,10 @@ Data handling
 - en 예시: `diabetes,risk,glucose,bmi,health,hospital`
 
 ### Support URL (필수)
-- `https://<도메인>/glucoinsight/privacy.html` 또는 지원 페이지 URL
+- `https://cheng80.myqnapcloud.com/glucoinsight/privacy.html` 또는 지원 페이지 URL
 
 ### Marketing URL (선택)
-- `https://<도메인>/glucoinsight/index.html`
+- `https://cheng80.myqnapcloud.com/glucoinsight/index.html`
 
 ### Copyright
 - `2026 KIM TAEK KWON`
